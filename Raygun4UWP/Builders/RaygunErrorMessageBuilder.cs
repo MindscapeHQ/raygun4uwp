@@ -1,5 +1,4 @@
-﻿using Mindscape.Raygun4Net.Messages;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -7,7 +6,7 @@ using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace Mindscape.Raygun4Net.Builders
+namespace Raygun4UWP
 {
   public class RaygunErrorMessageBuilder
   {

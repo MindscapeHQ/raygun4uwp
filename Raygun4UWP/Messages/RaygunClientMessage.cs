@@ -1,7 +1,7 @@
-﻿using System.Reflection;
-using System.Linq;
+﻿using System.Linq;
+using System.Reflection;
 
-namespace Mindscape.Raygun4Net.Messages
+namespace Raygun4UWP
 {
   public class RaygunClientMessage
   {

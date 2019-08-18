@@ -1,8 +1,6 @@
-﻿using System;
-using System.ComponentModel;
-using Mindscape.Raygun4Net.Messages;
+﻿using System.ComponentModel;
 
-namespace Mindscape.Raygun4Net
+namespace Raygun4UWP
 {
   /// <summary>
   /// Can be used to modify the message before sending, or to cancel the send operation.

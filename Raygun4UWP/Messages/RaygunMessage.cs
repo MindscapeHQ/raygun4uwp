@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Mindscape.Raygun4Net.Messages
+namespace Raygun4UWP
 {
   public class RaygunMessage
   {

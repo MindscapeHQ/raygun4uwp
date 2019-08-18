@@ -1,30 +1,19 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.Linq;
-using System.Net;
-using System.Runtime.InteropServices;
-using Mindscape.Raygun4Net.Messages;
-
-using Windows.UI.Xaml;
 using System.Diagnostics;
 using System.IO;
-using System.Threading;
-using System.Text;
+using System.Linq;
 using System.Reflection;
-using System.Net.NetworkInformation;
-using Windows.Storage;
 using System.Threading.Tasks;
 using Windows.Networking.Connectivity;
-using Windows.Networking;
-using Windows.ApplicationModel.Background;
-using Windows.Web.Http;
-using Windows.Web.Http.Headers;
 using Windows.Security.ExchangeActiveSyncProvisioning;
+using Windows.Storage;
+using Windows.UI.Xaml;
+using Windows.Web.Http;
 using Newtonsoft.Json;
 
-namespace Mindscape.Raygun4Net
+namespace Raygun4UWP
 {
   public class RaygunClient
   {

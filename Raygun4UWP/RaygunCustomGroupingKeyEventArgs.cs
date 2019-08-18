@@ -1,7 +1,6 @@
 ﻿using System;
-using Mindscape.Raygun4Net.Messages;
 
-namespace Mindscape.Raygun4Net
+namespace Raygun4UWP
 {
   /// <summary>
   /// Can be used to create a custom grouping key for exceptions

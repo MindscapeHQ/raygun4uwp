@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 
-namespace Mindscape.Raygun4Net.Messages
+namespace Raygun4UWP
 {
   public class RaygunMessageDetails
   {

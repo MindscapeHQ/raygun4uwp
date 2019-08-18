@@ -1,16 +1,11 @@
-﻿using Mindscape.Raygun4Net.Messages;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Diagnostics;
 using System.Globalization;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using Windows.Security.ExchangeActiveSyncProvisioning;
 using Windows.UI.Xaml;
 
-namespace Mindscape.Raygun4Net.Builders
+namespace Raygun4UWP
 {
   public class RaygunEnvironmentMessageBuilder
   {
