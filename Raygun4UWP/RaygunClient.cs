@@ -373,7 +373,13 @@ namespace Mindscape.Raygun4Net
         {
           try
           {
-            string message = JsonConvert.SerializeObject(raygunMessage);
+            JsonSerializerSettings settings = new JsonSerializerSettings
+            {
+              NullValueHandling = NullValueHandling.Ignore,
+              Formatting = Formatting.None
+            };
+
+            string message = JsonConvert.SerializeObject(raygunMessage, settings);
 
             if (InternetAvailable())
             {
