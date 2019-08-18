@@ -22,6 +22,7 @@ using Windows.ApplicationModel.Background;
 using Windows.Web.Http;
 using Windows.Web.Http.Headers;
 using Windows.Security.ExchangeActiveSyncProvisioning;
+using Newtonsoft.Json;
 
 namespace Mindscape.Raygun4Net
 {
@@ -372,7 +373,7 @@ namespace Mindscape.Raygun4Net
         {
           try
           {
-            string message = SimpleJson.SerializeObject(raygunMessage);
+            string message = JsonConvert.SerializeObject(raygunMessage);
 
             if (InternetAvailable())
             {
