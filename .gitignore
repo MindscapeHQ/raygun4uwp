@@ -5,3 +5,9 @@
 .vs/
 obj/
 bin/
+
+# User-specific files
+*.suo
+*.user
+*.sln.docstates
+*.ide
