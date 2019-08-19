@@ -17,6 +17,8 @@ namespace Raygun4UWP
 {
   public class RaygunClient
   {
+    private const string OFFLINE_DATA_FOLDER = "Raygun4UWPOfflineCrashReports";
+
     private readonly string _apiKey;
     private readonly List<Type> _wrapperExceptions = new List<Type>();
     private string _version;
@@ -38,7 +40,7 @@ namespace Raygun4UWP
 
     private async void BeginSendStoredMessages()
     {
-      await SendStoredMessages();
+      await SendStoredCrashReports();
     }
 
     private bool ValidateApiKey()
@@ -336,7 +338,7 @@ namespace Raygun4UWP
             }
             else
             {
-              await SaveMessage(message);
+              await SaveCrashReport(message);
             }
           }
           catch (Exception ex)
@@ -349,7 +351,7 @@ namespace Raygun4UWP
 
     private bool _saveOnFail = true;
 
-    private async Task SendStoredMessages()
+    private async Task SendStoredCrashReports()
     {
       if (InternetAvailable())
       {
@@ -358,7 +360,7 @@ namespace Raygun4UWP
         {
           var tempFolder = ApplicationData.Current.TemporaryFolder;
 
-          var raygunFolder = await tempFolder.CreateFolderAsync("RaygunIO", CreationCollisionOption.OpenIfExists).AsTask().ConfigureAwait(false);
+          var raygunFolder = await tempFolder.CreateFolderAsync(OFFLINE_DATA_FOLDER, CreationCollisionOption.OpenIfExists).AsTask().ConfigureAwait(false);
 
           var files = await raygunFolder.GetFilesAsync().AsTask().ConfigureAwait(false);
 
@@ -400,18 +402,18 @@ namespace Raygun4UWP
         Debug.WriteLine("Error Logging Exception to Raygun.io " + ex.Message);
         if (_saveOnFail)
         {
-          SaveMessage(message).Wait(3000);
+          SaveCrashReport(message).Wait(3000);
         }
       }
     }
 
-    private async Task SaveMessage(string message)
+    private async Task SaveCrashReport(string message)
     {
       try
       {
         var tempFolder = ApplicationData.Current.TemporaryFolder;
 
-        var raygunFolder = await tempFolder.CreateFolderAsync("RaygunIO", CreationCollisionOption.OpenIfExists).AsTask().ConfigureAwait(false);
+        var raygunFolder = await tempFolder.CreateFolderAsync(OFFLINE_DATA_FOLDER, CreationCollisionOption.OpenIfExists).AsTask().ConfigureAwait(false);
 
         int number = 1;
         while (true)
@@ -420,7 +422,7 @@ namespace Raygun4UWP
 
           try
           {
-            await raygunFolder.GetFileAsync("RaygunErrorMessage" + number + ".txt").AsTask().ConfigureAwait(false);
+            await raygunFolder.GetFileAsync("RaygunCrashReport" + number + ".txt").AsTask().ConfigureAwait(false);
             exists = true;
           }
           catch (FileNotFoundException)
@@ -430,7 +432,7 @@ namespace Raygun4UWP
 
           if (!exists)
           {
-            string nextFileName = "RaygunErrorMessage" + (number + 1) + ".txt";
+            string nextFileName = "RaygunCrashReport" + (number + 1) + ".txt";
 
             StorageFile nextFile = null;
             try
@@ -451,20 +453,21 @@ namespace Raygun4UWP
         {
           try
           {
-            StorageFile firstFile = await raygunFolder.GetFileAsync("RaygunErrorMessage1.txt").AsTask().ConfigureAwait(false);
+            StorageFile firstFile = await raygunFolder.GetFileAsync("RaygunCrashReport1.txt").AsTask().ConfigureAwait(false);
             await firstFile.DeleteAsync().AsTask().ConfigureAwait(false);
           }
           catch (FileNotFoundException) { }
         }
 
-        var file = await raygunFolder.CreateFileAsync("RaygunErrorMessage" + number + ".txt").AsTask().ConfigureAwait(false);
+        string fileName = "RaygunCrashReport" + number + ".txt";
+        var file = await raygunFolder.CreateFileAsync(fileName).AsTask().ConfigureAwait(false);
         await FileIO.WriteTextAsync(file, message).AsTask().ConfigureAwait(false);
 
-        Debug.WriteLine("Saved message: " + "RaygunIO\\RaygunErrorMessage" + number + ".txt");
+        Debug.WriteLine($"Saved message: {OFFLINE_DATA_FOLDER}\\{fileName}");
       }
       catch (Exception ex)
       {
-        Debug.WriteLine(string.Format("Error saving message to isolated storage {0}", ex.Message));
+        Debug.WriteLine(string.Format("Error saving message to offline storage {0}", ex.Message));
       }
     }
 
