@@ -279,7 +279,7 @@ namespace Raygun4UWP
           }
           catch (Exception ex)
           {
-            Debug.WriteLine(string.Format("Error Logging Exception to Raygun {0}", ex.Message));
+            Debug.WriteLine($"Error Logging Exception to Raygun: {ex.Message}");
           }
         }
       }
@@ -312,7 +312,7 @@ namespace Raygun4UWP
         }
         catch (Exception ex)
         {
-          Debug.WriteLine(string.Format("Error sending stored crash reports to Raygun {0}", ex.Message));
+          Debug.WriteLine($"Error sending stored crash reports to Raygun: {ex.Message}");
         }
         finally
         {
@@ -335,7 +335,7 @@ namespace Raygun4UWP
       }
       catch (Exception ex)
       {
-        Debug.WriteLine("Error Logging Exception to Raygun.io " + ex.Message);
+        Debug.WriteLine($"Error Logging Exception to Raygun: {ex.Message}");
         if (_saveOnFail)
         {
           SaveCrashReport(payload).Wait(3000);
@@ -358,7 +358,7 @@ namespace Raygun4UWP
 
           try
           {
-            await raygunFolder.GetFileAsync("RaygunCrashReport" + number + ".txt").AsTask().ConfigureAwait(false);
+            await raygunFolder.GetFileAsync($"RaygunCrashReport{number}.txt").AsTask().ConfigureAwait(false);
             exists = true;
           }
           catch (FileNotFoundException)
@@ -368,7 +368,7 @@ namespace Raygun4UWP
 
           if (!exists)
           {
-            string nextFileName = "RaygunCrashReport" + (number + 1) + ".txt";
+            string nextFileName = $"RaygunCrashReport{number + 1}.txt";
 
             StorageFile nextFile = null;
             try
@@ -395,7 +395,7 @@ namespace Raygun4UWP
           catch (FileNotFoundException) { }
         }
 
-        string fileName = "RaygunCrashReport" + number + ".txt";
+        string fileName = $"RaygunCrashReport{number}.txt";
         var file = await raygunFolder.CreateFileAsync(fileName).AsTask().ConfigureAwait(false);
         await FileIO.WriteTextAsync(file, payload).AsTask().ConfigureAwait(false);
 
@@ -403,14 +403,14 @@ namespace Raygun4UWP
       }
       catch (Exception ex)
       {
-        Debug.WriteLine(string.Format("Error saving crash report to offline storage {0}", ex.Message));
+        Debug.WriteLine($"Error saving crash report to offline storage: {ex.Message}");
       }
     }
 
     private RaygunCrashReport BuildCrashReport(Exception exception, IList<string> tags, IDictionary userCustomData, DateTime? currentTime)
     {
       string version = PackageVersion;
-      if (!String.IsNullOrWhiteSpace(ApplicationVersion))
+      if (!string.IsNullOrWhiteSpace(ApplicationVersion))
       {
         version = ApplicationVersion;
       }
@@ -424,7 +424,7 @@ namespace Raygun4UWP
           .SetVersion(version)
           .SetTags(tags)
           .SetCustomData(userCustomData)
-          .SetUserInfo(UserInfo ?? (!String.IsNullOrEmpty(User) ? new RaygunUserInfo(User) : null))
+          .SetUserInfo(UserInfo ?? (!string.IsNullOrEmpty(User) ? new RaygunUserInfo(User) : null))
           .Build();
 
       return crashReport;
@@ -440,7 +440,7 @@ namespace Raygun4UWP
           {
             // The try catch block is to get the tests to work.
             var v = Windows.ApplicationModel.Package.Current.Id.Version;
-            _version = string.Format("{0}.{1}.{2}.{3}", v.Major, v.Minor, v.Build, v.Revision);
+            _version = $"{v.Major}.{v.Minor}.{v.Build}.{v.Revision}";
           }
           catch (Exception) { }
         }
