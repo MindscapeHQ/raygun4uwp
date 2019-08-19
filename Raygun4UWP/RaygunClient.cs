@@ -23,7 +23,6 @@ namespace Raygun4UWP
 
     private readonly string _apiKey;
     private readonly List<Type> _wrapperExceptions = new List<Type>();
-    private string _version;
 
     private bool _handlingRecursiveErrorSending;
 
@@ -40,55 +39,36 @@ namespace Raygun4UWP
       BeginSendStoredCrashReports();
     }
 
-    private async void BeginSendStoredCrashReports()
+    /// <summary>
+    /// Creates a new RaygunClient with the given API key.
+    /// The RaygunClient is set on the Current property, and then returned.
+    /// Calling this method a second time does nothing.
+    /// </summary>
+    /// <param name="apiKey">Your Raygun application API key.</param>
+    /// <returns>The initialized RaygunClient instance.</returns>
+    public static RaygunClient Initialize(string apiKey)
     {
-      await SendStoredCrashReports();
-    }
-
-    private bool ValidateApiKey()
-    {
-      if (string.IsNullOrEmpty(_apiKey))
+      if (Current == null)
       {
-        System.Diagnostics.Debug.WriteLine("ApiKey has not been provided, exception will not be logged");
-        return false;
-      }
-      return true;
-    }
-
-    // Returns true if the crash report can be sent, false if the sending is canceled.
-    private bool OnSendingCrashReport(Exception originalException, RaygunCrashReport raygunCrashReport)
-    {
-      bool result = true;
-
-      if (!_handlingRecursiveErrorSending)
-      {
-        EventHandler<RaygunSendingCrashReportEventArgs> handler = SendingCrashReport;
-        if (handler != null)
-        {
-          RaygunSendingCrashReportEventArgs args = new RaygunSendingCrashReportEventArgs(originalException, raygunCrashReport);
-          try
-          {
-            handler(this, args);
-          }
-          catch (Exception e)
-          {
-            // Catch and send exceptions that occur in the SendingCrashReport event handler.
-            // Set the _handlingRecursiveErrorSending flag to prevent infinite errors.
-            _handlingRecursiveErrorSending = true;
-            Send(e);
-            _handlingRecursiveErrorSending = false;
-          }
-          result = !args.Cancel;
-        }
+        Current = new RaygunClient(apiKey);
       }
 
-      return result;
+      return Current;
     }
 
     /// <summary>
-    /// Gets or sets the user identity string.
+    /// Gets the <see cref="RaygunClient"/> created by the Initialize method.
     /// </summary>
-    public string User { get; set; }
+    public static RaygunClient Current
+    {
+      get { return _client; }
+      private set { _client = value; }
+    }
+
+    /// <summary>
+    /// Gets or sets the user identifier string.
+    /// </summary>
+    public string UserIdentifier { get; set; }
 
     /// <summary>
     /// Gets or sets richer data about the currently logged-in user
@@ -135,32 +115,6 @@ namespace Raygun4UWP
       {
         _wrapperExceptions.Remove(wrapper);
       }
-    }
-
-    /// <summary>
-    /// Gets the <see cref="RaygunClient"/> created by the Initialize method.
-    /// </summary>
-    public static RaygunClient Current
-    {
-      get { return _client; }
-      private set { _client = value; }
-    }
-
-    /// <summary>
-    /// Creates a new RaygunClient with the given apikey.
-    /// The RaygunClient is set on the Current property, and then returned.
-    /// Calling this method a second time does nothing.
-    /// </summary>
-    /// <param name="apiKey">Your Raygun application API key.</param>
-    /// <returns>The initialized RaygunClient instance.</returns>
-    public static RaygunClient Initialize(string apiKey)
-    {
-      if (Current == null)
-      {
-        Current = new RaygunClient(apiKey);
-      }
-
-      return Current;
     }
 
     /// <summary>
@@ -285,6 +239,51 @@ namespace Raygun4UWP
       }
     }
 
+    private bool ValidateApiKey()
+    {
+      if (string.IsNullOrEmpty(_apiKey))
+      {
+        System.Diagnostics.Debug.WriteLine("ApiKey has not been provided, exception will not be logged");
+        return false;
+      }
+      return true;
+    }
+
+    // Returns true if the crash report can be sent, false if the sending is canceled.
+    private bool OnSendingCrashReport(Exception originalException, RaygunCrashReport raygunCrashReport)
+    {
+      bool result = true;
+
+      if (!_handlingRecursiveErrorSending)
+      {
+        EventHandler<RaygunSendingCrashReportEventArgs> handler = SendingCrashReport;
+        if (handler != null)
+        {
+          RaygunSendingCrashReportEventArgs args = new RaygunSendingCrashReportEventArgs(originalException, raygunCrashReport);
+          try
+          {
+            handler(this, args);
+          }
+          catch (Exception e)
+          {
+            // Catch and send exceptions that occur in the SendingCrashReport event handler.
+            // Set the _handlingRecursiveErrorSending flag to prevent infinite errors.
+            _handlingRecursiveErrorSending = true;
+            Send(e);
+            _handlingRecursiveErrorSending = false;
+          }
+          result = !args.Cancel;
+        }
+      }
+
+      return result;
+    }
+
+    private async void BeginSendStoredCrashReports()
+    {
+      await SendStoredCrashReports();
+    }
+
     private async Task SendStoredCrashReports()
     {
       if (InternetAvailable())
@@ -402,11 +401,7 @@ namespace Raygun4UWP
 
     private RaygunCrashReport BuildCrashReport(Exception exception, IList<string> tags, IDictionary userCustomData, DateTime? currentTime)
     {
-      string version = PackageVersion;
-      if (!string.IsNullOrWhiteSpace(ApplicationVersion))
-      {
-        version = ApplicationVersion;
-      }
+      string version = string.IsNullOrWhiteSpace(ApplicationVersion) ? GetPackageVersion() : ApplicationVersion;
 
       var crashReport = RaygunCrashReportBuilder.New
           .SetEnvironmentInfo()
@@ -417,29 +412,27 @@ namespace Raygun4UWP
           .SetVersion(version)
           .SetTags(tags)
           .SetCustomData(userCustomData)
-          .SetUserInfo(UserInfo ?? (!string.IsNullOrEmpty(User) ? new RaygunUserInfo(User) : null))
+          .SetUserInfo(UserInfo ?? (!string.IsNullOrEmpty(UserIdentifier) ? new RaygunUserInfo(UserIdentifier) : null))
           .Build();
 
       return crashReport;
     }
 
-    private string PackageVersion
+    private string GetPackageVersion()
     {
-      get
-      {
-        if (_version == null)
-        {
-          try
-          {
-            // The try catch block is to get the tests to work.
-            var v = Windows.ApplicationModel.Package.Current.Id.Version;
-            _version = $"{v.Major}.{v.Minor}.{v.Build}.{v.Revision}";
-          }
-          catch (Exception) { }
-        }
+      string version = null;
 
-        return _version;
+      try
+      {
+        var v = Windows.ApplicationModel.Package.Current.Id.Version;
+        version = $"{v.Major}.{v.Minor}.{v.Build}.{v.Revision}";
       }
+      catch (Exception ex)
+      {
+        Debug.WriteLine($"Failed to get application package version: {ex.Message}");
+      }
+
+      return version;
     }
 
     private void StripAndSend(Exception exception, IList<string> tags, IDictionary userCustomData)
