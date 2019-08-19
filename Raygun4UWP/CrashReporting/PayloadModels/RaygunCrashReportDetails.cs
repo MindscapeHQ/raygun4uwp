@@ -22,12 +22,5 @@ namespace Raygun4UWP
     public IDictionary UserCustomData { get; set; }
 
     public RaygunUserInfo User { get; set; }
-
-    public override string ToString()
-    {
-      // This exists because Reflection in Xamarin can't seem to obtain the Getter methods unless the getter is used somewhere in the code.
-      // The getter of all properties is required to serialize the Raygun messages to JSON.
-      return string.Format("[RaygunMessageDetails: MachineName={0}, Version={1}, Error={2}, Environment={3}, Client={4}, Tags={5}, UserCustomData={6}, User={7}]", MachineName, Version, Error, Environment, Client, Tags, UserCustomData, User);
-    }
   }
 }
