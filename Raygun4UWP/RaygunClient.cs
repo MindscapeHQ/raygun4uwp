@@ -19,6 +19,8 @@ namespace Raygun4UWP
   {
     private const string OFFLINE_DATA_FOLDER = "Raygun4UWPOfflineCrashReports";
 
+    private static RaygunClient _client;
+
     private readonly string _apiKey;
     private readonly List<Type> _wrapperExceptions = new List<Type>();
     private string _version;
@@ -135,8 +137,6 @@ namespace Raygun4UWP
       }
     }
 
-    private static RaygunClient _client;
-
     /// <summary>
     /// Gets the <see cref="RaygunClient"/> created by the Initialize method.
     /// </summary>
@@ -195,113 +195,49 @@ namespace Raygun4UWP
     }
 
     /// <summary>
-    /// Asynchronously sends a message to the Raygun.io endpoint based on the given <see cref="Exception"/>.
+    /// Asynchronously sends a crash report to Raygun for the given <see cref="Exception"/>.
     /// It is best to call this method within a try/catch block.
     /// If the application is crashing due to an unhandled exception, use the synchronous methods instead.
     /// </summary>
-    /// <param name="exception">The <see cref="Exception"/> to send in the message.</param>
-    public async Task SendAsync(Exception exception)
-    {
-      await SendAsync(exception, null, null);
-    }
-
-    /// <summary>
-    /// Asynchronously sends a message to the Raygun.io endpoint based on the given <see cref="Exception"/>.
-    /// It is best to call this method within a try/catch block.
-    /// If the application is crashing due to an unhandled exception, use the synchronous methods instead.
-    /// </summary>
-    /// <param name="exception">The <see cref="Exception"/> to send in the message.</param>
-    /// <param name="tags">A list of tags to send with the message.</param>
-    public async Task SendAsync(Exception exception, IList<string> tags)
-    {
-      await SendAsync(exception, tags, null);
-    }
-
-    /// <summary>
-    /// Asynchronously sends a message to the Raygun.io endpoint based on the given <see cref="Exception"/>.
-    /// It is best to call this method within a try/catch block.
-    /// If the application is crashing due to an unhandled exception, use the synchronous methods instead.
-    /// </summary>
-    /// <param name="exception">The <see cref="Exception"/> to send in the message.</param>
-    /// <param name="userCustomData">Custom data to send with the message.</param>
-    public async Task SendAsync(Exception exception, IDictionary userCustomData)
-    {
-      await SendAsync(exception, null, userCustomData);
-    }
-
-    /// <summary>
-    /// Asynchronously sends a message to the Raygun.io endpoint based on the given <see cref="Exception"/>.
-    /// It is best to call this method within a try/catch block.
-    /// If the application is crashing due to an unhandled exception, use the synchronous methods instead.
-    /// </summary>
-    /// <param name="exception">The <see cref="Exception"/> to send in the message.</param>
-    /// <param name="tags">A list of tags to send with the message.</param>
-    /// <param name="userCustomData">Custom data to send with the message.</param>
-    public async Task SendAsync(Exception exception, IList<string> tags, IDictionary userCustomData)
+    /// <param name="exception">The <see cref="Exception"/> to send in the crash report.</param>
+    /// <param name="tags">An optional list of tags to send with the crash report.</param>
+    /// <param name="userCustomData">Optional custom data to send with the crash report.</param>
+    public async Task SendAsync(Exception exception, IList<string> tags = null, IDictionary userCustomData = null)
     {
       await StripAndSendAsync(exception, tags, userCustomData);
     }
 
     /// <summary>
-    /// Asynchronously sends a RaygunMessage to the Raygun.
+    /// Asynchronously sends a RaygunCrashReport to Raygun.
     /// It is best to call this method within a try/catch block.
     /// If the application is crashing due to an unhandled exception, use the synchronous methods instead.
     /// </summary>
-    /// <param name="raygunMessage">The RaygunMessage to send. This needs its OccurredOn property
+    /// <param name="raygunCrashReport">The RaygunCrashReport to send. This needs its OccurredOn property
     /// set to a valid DateTime and as much of the Details property as is available.</param>
-    public async Task SendAsync(RaygunCrashReport raygunMessage)
+    public async Task SendAsync(RaygunCrashReport raygunCrashReport)
     {
-      await SendOrSave(null, raygunMessage);
+      await SendOrSave(null, raygunCrashReport);
     }
 
     /// <summary>
-    /// Sends a message immediately to the Raygun.io endpoint based on the given <see cref="Exception"/>.
+    /// Sends a crash report immediately to Raygun for the given <see cref="Exception"/>.
     /// </summary>
-    /// <param name="exception">The <see cref="Exception"/> to send in the message.</param>
-    public void Send(Exception exception)
-    {
-      Send(exception, null, null);
-    }
-
-    /// <summary>
-    /// Sends a message immediately to the Raygun.io endpoint based on the given <see cref="Exception"/>.
-    /// </summary>
-    /// <param name="exception">The <see cref="Exception"/> to send in the message.</param>
-    /// <param name="tags">A list of tags to send with the message.</param>
-    public void Send(Exception exception, IList<string> tags)
-    {
-      Send(exception, tags, null);
-    }
-
-    /// <summary>
-    /// Sends a message immediately to the Raygun.io endpoint based on the given <see cref="Exception"/>.
-    /// </summary>
-    /// <param name="exception">The <see cref="Exception"/> to send in the message.</param>
-    /// <param name="userCustomData">Custom data to send with the message.</param>
-    public void Send(Exception exception, IDictionary userCustomData)
-    {
-      Send(exception, null, userCustomData);
-    }
-
-    /// <summary>
-    /// Sends a message immediately to the Raygun.io endpoint based on the given <see cref="Exception"/>.
-    /// </summary>
-    /// <param name="exception">The <see cref="Exception"/> to send in the message.</param>
-    /// <param name="tags">A list of tags to send with the message.</param>
-    /// <param name="userCustomData">Custom data to send with the message.</param>
-    public void Send(Exception exception, IList<string> tags, IDictionary userCustomData)
+    /// <param name="exception">The <see cref="Exception"/> to send in the crash report.</param>
+    /// <param name="tags">An optional list of tags to send with the crash report.</param>
+    /// <param name="userCustomData">Optional custom data to send with the crash report.</param>
+    public void Send(Exception exception, IList<string> tags = null, IDictionary userCustomData = null)
     {
       StripAndSend(exception, tags, userCustomData);
     }
 
     /// <summary>
-    /// Sends a RaygunMessage immediately to the Raygun.io endpoint.
+    /// Sends a RaygunCrashReport immediately to Raygun.
     /// </summary>
-    /// <param name="raygunMessage">The RaygunMessage to send. This needs its OccurredOn property
+    /// <param name="raygunCrashReport">The RaygunCrashReport to send. This needs its OccurredOn property
     /// set to a valid DateTime and as much of the Details property as is available.</param>
-    public void Send(RaygunCrashReport raygunMessage)
+    public void Send(RaygunCrashReport raygunCrashReport)
     {
-      SendOrSave(null, raygunMessage).Wait(3000);
+      SendOrSave(null, raygunCrashReport).Wait(3000);
     }
 
     private bool InternetAvailable()
