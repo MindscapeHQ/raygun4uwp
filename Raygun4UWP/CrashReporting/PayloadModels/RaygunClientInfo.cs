@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using System.Reflection;
+﻿using System.Reflection;
 
 namespace Raygun4UWP
 {
@@ -7,9 +6,9 @@ namespace Raygun4UWP
   {
     public RaygunClientInfo()
     {
-      Name = ((AssemblyTitleAttribute)GetType().GetTypeInfo().Assembly.GetCustomAttributes(typeof(AssemblyTitleAttribute)).First()).Title;
+      Name = "Raygun4UWP";
       Version = GetType().GetTypeInfo().Assembly.GetName().Version.ToString();
-      ClientUrl = @"https://github.com/MindscapeHQ/raygun4net";
+      ClientUrl = "https://github.com/MindscapeHQ/raygun4uwp";
     }
 
     public string Name { get; set; }
