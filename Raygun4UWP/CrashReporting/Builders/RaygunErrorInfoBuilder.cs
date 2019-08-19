@@ -258,16 +258,21 @@ namespace Raygun4UWP
         Marshal.Copy(nativeImageBase + address + 4, debugGuidArray, 0, 16);
         Guid debugGuid = new Guid(debugGuidArray);
 
-        byte[] fileNameArray = new byte[size - 24];
-        Marshal.Copy(nativeImageBase + address + 24, fileNameArray, 0, size - 24);
-
-        string pdbFileName = Encoding.UTF8.GetString(fileNameArray, 0, fileNameArray.Length);
-
-        return new RaygunImageDebugInfo
+        // We subtract an extra 1 here to discard the zero terminator
+        int fileNameSize = size - 24 - 1;
+        if (fileNameSize > 0)
         {
-          PdbFileName = pdbFileName,
-          Guid = debugGuid.ToString()
-        };
+          byte[] fileNameArray = new byte[fileNameSize];
+          Marshal.Copy(nativeImageBase + address + 24, fileNameArray, 0, fileNameSize);
+
+          string pdbFileName = Encoding.UTF8.GetString(fileNameArray, 0, fileNameArray.Length);
+
+          return new RaygunImageDebugInfo
+          {
+            PdbFileName = pdbFileName,
+            Guid = debugGuid.ToString()
+          };
+        }
       }
 
       return null;
