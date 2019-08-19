@@ -18,6 +18,8 @@ namespace Raygun4UWP
     private const int DEBUG_DATA_DIRECTORY_OFFSET_64 = 160;
     private const int DEBUG_DIRECTORY_SIZE = 28;
 
+    private const int RSDS_SIGNATURE = 0x53445352; // "RSDS"
+
     public static RaygunErrorInfo Build(Exception exception)
     {
       RaygunErrorInfo message = new RaygunErrorInfo();
@@ -208,7 +210,11 @@ namespace Raygun4UWP
 
                 int addressOfRawData = CopyInt32(nativeImageBase + debugDirectoryAddress + 20);
 
-                debugInfo.Add(ReadDebugInformation(nativeImageBase, addressOfRawData, sizeOfData));
+                RaygunImageDebugInfo raygunImageDebugInfo = ReadDebugInformation(nativeImageBase, addressOfRawData, sizeOfData);
+                if (raygunImageDebugInfo != null)
+                {
+                  debugInfo.Add(raygunImageDebugInfo);
+                }
               }
             }
 
@@ -244,23 +250,27 @@ namespace Raygun4UWP
       // +20    dword          a value which is incremented each time the executable and its associated pdb file is remade by the linker 
       // +24    byte string    zero terminated UTF8 path and file name
 
-      // TODO: check that this is "RSDS" before looking into subsequent values
       int debugSignature = CopyInt32(nativeImageBase + address);
 
-      byte[] debugGuidArray = new byte[16];
-      Marshal.Copy(nativeImageBase + address + 4, debugGuidArray, 0, 16);
-      Guid debugGuid = new Guid(debugGuidArray);
-
-      byte[] fileNameArray = new byte[size - 24];
-      Marshal.Copy(nativeImageBase + address + 24, fileNameArray, 0, size - 24);
-
-      string pdbFileName = Encoding.UTF8.GetString(fileNameArray, 0, fileNameArray.Length);
-
-      return new RaygunImageDebugInfo
+      if (debugSignature == RSDS_SIGNATURE)
       {
-        PdbFileName = pdbFileName,
-        Guid = debugGuid.ToString()
-      };
+        byte[] debugGuidArray = new byte[16];
+        Marshal.Copy(nativeImageBase + address + 4, debugGuidArray, 0, 16);
+        Guid debugGuid = new Guid(debugGuidArray);
+
+        byte[] fileNameArray = new byte[size - 24];
+        Marshal.Copy(nativeImageBase + address + 24, fileNameArray, 0, size - 24);
+
+        string pdbFileName = Encoding.UTF8.GetString(fileNameArray, 0, fileNameArray.Length);
+
+        return new RaygunImageDebugInfo
+        {
+          PdbFileName = pdbFileName,
+          Guid = debugGuid.ToString()
+        };
+      }
+
+      return null;
     }
 
     private static short CopyInt16(IntPtr address)
