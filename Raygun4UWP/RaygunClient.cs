@@ -189,11 +189,6 @@ namespace Raygun4UWP
       }
     }
 
-    private static void Current_UnhandledException(object sender, UnhandledExceptionEventArgs e)
-    {
-      _client.Send(e.Exception);
-    }
-
     /// <summary>
     /// Asynchronously sends a crash report to Raygun for the given <see cref="Exception"/>.
     /// It is best to call this method within a try/catch block.
@@ -240,6 +235,11 @@ namespace Raygun4UWP
       SendOrSaveCrashReport(null, raygunCrashReport).Wait(3000);
     }
 
+    private static void Current_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+    {
+      _client.Send(e.Exception);
+    }
+
     private bool InternetAvailable()
     {
       IEnumerable<ConnectionProfile> connections = NetworkInformation.GetConnectionProfiles();
@@ -270,7 +270,7 @@ namespace Raygun4UWP
 
             if (InternetAvailable())
             {
-              await SendCrashReport(payload);
+              await SendCrashReport(payload, true);
             }
             else
             {
@@ -285,13 +285,10 @@ namespace Raygun4UWP
       }
     }
 
-    private bool _saveOnFail = true;
-
     private async Task SendStoredCrashReports()
     {
       if (InternetAvailable())
       {
-        _saveOnFail = false;
         try
         {
           var tempFolder = ApplicationData.Current.TemporaryFolder;
@@ -303,7 +300,7 @@ namespace Raygun4UWP
           foreach (var file in files)
           {
             string text = await FileIO.ReadTextAsync(file).AsTask().ConfigureAwait(false);
-            await SendCrashReport(text).ConfigureAwait(false);
+            await SendCrashReport(text, false).ConfigureAwait(false);
 
             await file.DeleteAsync().AsTask().ConfigureAwait(false);
           }
@@ -314,14 +311,10 @@ namespace Raygun4UWP
         {
           Debug.WriteLine($"Error sending stored crash reports to Raygun: {ex.Message}");
         }
-        finally
-        {
-          _saveOnFail = true;
-        }
       }
     }
 
-    private async Task SendCrashReport(string payload)
+    private async Task SendCrashReport(string payload, bool saveOnFail)
     {
       var httpClient = new HttpClient();
 
@@ -336,7 +329,7 @@ namespace Raygun4UWP
       catch (Exception ex)
       {
         Debug.WriteLine($"Error Logging Exception to Raygun: {ex.Message}");
-        if (_saveOnFail)
+        if (saveOnFail)
         {
           SaveCrashReport(payload).Wait(3000);
         }
