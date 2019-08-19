@@ -135,9 +135,8 @@
     <Compile Include="CrashReporting\PayloadModels\RaygunCrashReportDetails.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RaygunClient.cs" />
-    <Compile Include="RaygunCustomGroupingKeyEventArgs.cs" />
     <Compile Include="CrashReporting\Builders\RaygunCrashReportBuilder.cs" />
-    <Compile Include="RaygunSendingMessageEventArgs.cs" />
+    <Compile Include="CrashReporting\RaygunSendingCrashReportEventArgs.cs" />
     <Compile Include="RaygunSettings.cs" />
     <EmbeddedResource Include="Properties\Raygun4UWP.rd.xml" />
   </ItemGroup>

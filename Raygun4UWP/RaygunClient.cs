@@ -21,6 +21,8 @@ namespace Raygun4UWP
     private readonly List<Type> _wrapperExceptions = new List<Type>();
     private string _version;
 
+    private bool _handlingRecursiveErrorSending;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="RaygunClient" /> class.
     /// </summary>
@@ -49,19 +51,17 @@ namespace Raygun4UWP
       return true;
     }
 
-    private bool _handlingRecursiveErrorSending;
-
     // Returns true if the message can be sent, false if the sending is canceled.
-    protected bool OnSendingMessage(RaygunCrashReport raygunMessage)
+    private bool OnSendingCrashReport(Exception originalException, RaygunCrashReport raygunMessage)
     {
       bool result = true;
 
       if (!_handlingRecursiveErrorSending)
       {
-        EventHandler<RaygunSendingMessageEventArgs> handler = SendingMessage;
+        EventHandler<RaygunSendingCrashReportEventArgs> handler = SendingCrashReport;
         if (handler != null)
         {
-          RaygunSendingMessageEventArgs args = new RaygunSendingMessageEventArgs(raygunMessage);
+          RaygunSendingCrashReportEventArgs args = new RaygunSendingCrashReportEventArgs(originalException, raygunMessage);
           try
           {
             handler(this, args);
@@ -82,37 +82,6 @@ namespace Raygun4UWP
     }
 
     /// <summary>
-    /// Raised before a message is sent. This can be used to add a custom grouping key to a RaygunMessage before sending it to the Raygun service.
-    /// </summary>
-    public event EventHandler<RaygunCustomGroupingKeyEventArgs> CustomGroupingKey;
-
-    private bool _handlingRecursiveGrouping;
-    protected string OnCustomGroupingKey(Exception exception, RaygunCrashReport message)
-    {
-      string result = null;
-      if (!_handlingRecursiveGrouping)
-      {
-        var handler = CustomGroupingKey;
-        if (handler != null)
-        {
-          var args = new RaygunCustomGroupingKeyEventArgs(exception, message);
-          try
-          {
-            handler(this, args);
-          }
-          catch (Exception e)
-          {
-            _handlingRecursiveGrouping = true;
-            Send(e);
-            _handlingRecursiveGrouping = false;
-          }
-          result = args.CustomGroupingKey;
-        }
-      }
-      return result;
-    }
-
-    /// <summary>
     /// Gets or sets the user identity string.
     /// </summary>
     public string User { get; set; }
@@ -128,9 +97,9 @@ namespace Raygun4UWP
     public string ApplicationVersion { get; set; }
 
     /// <summary>
-    /// Raised just before a message is sent. This can be used to make final adjustments to the <see cref="RaygunCrashReport"/>, or to cancel the send.
+    /// Raised just before any RaygunCrashReport is sent. This can be used to make final adjustments to the <see cref="RaygunCrashReport"/>, or to cancel the send.
     /// </summary>
-    public event EventHandler<RaygunSendingMessageEventArgs> SendingMessage;
+    public event EventHandler<RaygunSendingCrashReportEventArgs> SendingCrashReport;
 
     /// <summary>
     /// Adds a list of outer exceptions that will be stripped, leaving only the valuable inner exception.
@@ -272,7 +241,7 @@ namespace Raygun4UWP
     }
 
     /// <summary>
-    /// Asynchronously sends a RaygunMessage to the Raygun.io api endpoint.
+    /// Asynchronously sends a RaygunMessage to the Raygun.
     /// It is best to call this method within a try/catch block.
     /// If the application is crashing due to an unhandled exception, use the synchronous methods instead.
     /// </summary>
@@ -280,7 +249,7 @@ namespace Raygun4UWP
     /// set to a valid DateTime and as much of the Details property as is available.</param>
     public async Task SendAsync(RaygunCrashReport raygunMessage)
     {
-      await SendOrSave(raygunMessage);
+      await SendOrSave(null, raygunMessage);
     }
 
     /// <summary>
@@ -330,7 +299,7 @@ namespace Raygun4UWP
     /// set to a valid DateTime and as much of the Details property as is available.</param>
     public void Send(RaygunCrashReport raygunMessage)
     {
-      SendOrSave(raygunMessage).Wait(3000);
+      SendOrSave(null, raygunMessage).Wait(3000);
     }
 
     private bool InternetAvailable()
@@ -344,11 +313,11 @@ namespace Raygun4UWP
       return internetAvailable;
     }
 
-    private async Task SendOrSave(RaygunCrashReport raygunMessage)
+    private async Task SendOrSave(Exception originalException, RaygunCrashReport raygunMessage)
     {
       if (ValidateApiKey())
       {
-        bool canSend = OnSendingMessage(raygunMessage);
+        bool canSend = OnSendingCrashReport(originalException, raygunMessage);
         if (canSend)
         {
           try
@@ -372,7 +341,7 @@ namespace Raygun4UWP
           }
           catch (Exception ex)
           {
-            Debug.WriteLine(string.Format("Error Logging Exception to Raygun.io {0}", ex.Message));
+            Debug.WriteLine(string.Format("Error Logging Exception to Raygun {0}", ex.Message));
           }
         }
       }
@@ -519,12 +488,6 @@ namespace Raygun4UWP
           .SetUserInfo(UserInfo ?? (!String.IsNullOrEmpty(User) ? new RaygunUserInfo(User) : null))
           .Build();
 
-      var customGroupingKey = OnCustomGroupingKey(exception, message);
-      if (string.IsNullOrEmpty(customGroupingKey) == false)
-      {
-        message.Details.GroupingKey = customGroupingKey;
-      }
-
       return message;
     }
 
@@ -552,7 +515,7 @@ namespace Raygun4UWP
       var currentTime = DateTime.UtcNow;
       foreach (Exception e in StripWrapperExceptions(exception))
       {
-        Send(BuildMessage(e, tags, userCustomData, currentTime));
+        SendOrSave(e, BuildMessage(e, tags, userCustomData, currentTime)).Wait(3000);
       }
     }
 
@@ -562,7 +525,7 @@ namespace Raygun4UWP
       var currentTime = DateTime.UtcNow;
       foreach (Exception e in StripWrapperExceptions(exception))
       {
-        tasks.Add(SendAsync(BuildMessage(e, tags, userCustomData, currentTime)));
+        tasks.Add(SendOrSave(e, BuildMessage(e, tags, userCustomData, currentTime)));
       }
       await Task.WhenAll(tasks);
     }
