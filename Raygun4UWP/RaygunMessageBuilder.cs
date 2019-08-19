@@ -85,12 +85,5 @@ namespace Raygun4UWP
       }
       return this;
     }
-
-    public IRaygunMessageBuilder SetContextId(string contextId)
-    {
-      // No-op for WindowsStore provider
-
-      return this;
-    }
   }
 }

@@ -25,7 +25,5 @@ namespace Raygun4UWP
     IRaygunMessageBuilder SetUser(RaygunUserInfo user);
 
     IRaygunMessageBuilder SetTimeStamp(DateTime? currentTime);
-
-    IRaygunMessageBuilder SetContextId(string contextId);
   }
 }
