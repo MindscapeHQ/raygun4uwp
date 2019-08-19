@@ -4,19 +4,19 @@ using System.Collections.Generic;
 
 namespace Raygun4UWP
 {
-  public class RaygunMessageBuilder : IRaygunMessageBuilder
+  public class RaygunCrashReportBuilder : IRaygunCrashReportBuilder
   {
-    public static RaygunMessageBuilder New
+    private readonly RaygunCrashReport _raygunMessage;
+
+    public static IRaygunCrashReportBuilder New
     {
       get
       {
-        return new RaygunMessageBuilder();
+        return new RaygunCrashReportBuilder();
       }
     }
 
-    private readonly RaygunCrashReport _raygunMessage;
-
-    private RaygunMessageBuilder()
+    private RaygunCrashReportBuilder()
     {
       _raygunMessage = new RaygunCrashReport();
     }
@@ -26,19 +26,19 @@ namespace Raygun4UWP
       return _raygunMessage;
     }
 
-    public IRaygunMessageBuilder SetMachineName(string machineName)
+    public IRaygunCrashReportBuilder SetMachineName(string machineName)
     {
       _raygunMessage.Details.MachineName = machineName;
       return this;
     }
 
-    public IRaygunMessageBuilder SetEnvironmentDetails()
+    public IRaygunCrashReportBuilder SetEnvironmentInfo()
     {
       _raygunMessage.Details.Environment = RaygunEnvironmentInfoBuilder.Build();
       return this;
     }
 
-    public IRaygunMessageBuilder SetExceptionDetails(Exception exception)
+    public IRaygunCrashReportBuilder SetErrorInfo(Exception exception)
     {
       if (exception != null)
       {
@@ -47,41 +47,41 @@ namespace Raygun4UWP
       return this;
     }
 
-    public IRaygunMessageBuilder SetClientDetails()
+    public IRaygunCrashReportBuilder SetClientInfo()
     {
       _raygunMessage.Details.Client = new RaygunClientInfo();
       return this;
     }
 
-    public IRaygunMessageBuilder SetUserCustomData(IDictionary userCustomData)
+    public IRaygunCrashReportBuilder SetCustomData(IDictionary userCustomData)
     {
       _raygunMessage.Details.UserCustomData = userCustomData;
       return this;
     }
 
-    public IRaygunMessageBuilder SetTags(IList<string> tags)
+    public IRaygunCrashReportBuilder SetTags(IList<string> tags)
     {
       _raygunMessage.Details.Tags = tags;
       return this;
     }
 
-    public IRaygunMessageBuilder SetUser(RaygunUserInfo user)
+    public IRaygunCrashReportBuilder SetUserInfo(RaygunUserInfo user)
     {
       _raygunMessage.Details.User = user;
       return this;
     }
 
-    public IRaygunMessageBuilder SetVersion(string Version)
+    public IRaygunCrashReportBuilder SetVersion(string version)
     {
-      _raygunMessage.Details.Version = Version;
+      _raygunMessage.Details.Version = version;
       return this;
     }
 
-    public IRaygunMessageBuilder SetTimeStamp(DateTime? currentTime)
+    public IRaygunCrashReportBuilder SetOccurredOn(DateTime? occurredOn)
     {
-      if (currentTime != null)
+      if (occurredOn != null)
       {
-        _raygunMessage.OccurredOn = currentTime.Value;
+        _raygunMessage.OccurredOn = occurredOn.Value;
       }
       return this;
     }

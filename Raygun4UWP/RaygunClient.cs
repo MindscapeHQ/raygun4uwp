@@ -521,16 +521,16 @@ namespace Raygun4UWP
         version = ApplicationVersion;
       }
 
-      var message = RaygunMessageBuilder.New
-          .SetEnvironmentDetails()
-          .SetTimeStamp(currentTime)
+      var message = RaygunCrashReportBuilder.New
+          .SetEnvironmentInfo()
+          .SetOccurredOn(currentTime)
           .SetMachineName(new EasClientDeviceInformation().FriendlyName)
-          .SetExceptionDetails(exception)
-          .SetClientDetails()
+          .SetErrorInfo(exception)
+          .SetClientInfo()
           .SetVersion(version)
           .SetTags(tags)
-          .SetUserCustomData(userCustomData)
-          .SetUser(UserInfo ?? (!String.IsNullOrEmpty(User) ? new RaygunUserInfo(User) : null))
+          .SetCustomData(userCustomData)
+          .SetUserInfo(UserInfo ?? (!String.IsNullOrEmpty(User) ? new RaygunUserInfo(User) : null))
           .Build();
 
       var customGroupingKey = OnCustomGroupingKey(exception, message);

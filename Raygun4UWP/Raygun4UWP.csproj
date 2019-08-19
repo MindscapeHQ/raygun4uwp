@@ -122,7 +122,7 @@
   <ItemGroup>
     <Compile Include="CrashReporting\Builders\RaygunEnvironmentInfoBuilder.cs" />
     <Compile Include="CrashReporting\Builders\RaygunErrorInfoBuilder.cs" />
-    <Compile Include="IRaygunMessageBuilder.cs" />
+    <Compile Include="CrashReporting\Builders\IRaygunCrashReportBuilder.cs" />
     <Compile Include="CrashReporting\PayloadModels\RaygunClientInfo.cs" />
     <Compile Include="CrashReporting\PayloadModels\RaygunImageDebugInfo.cs" />
     <Compile Include="CrashReporting\PayloadModels\RaygunEnvironmentInfo.cs" />
@@ -136,7 +136,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RaygunClient.cs" />
     <Compile Include="RaygunCustomGroupingKeyEventArgs.cs" />
-    <Compile Include="RaygunMessageBuilder.cs" />
+    <Compile Include="CrashReporting\Builders\RaygunCrashReportBuilder.cs" />
     <Compile Include="RaygunSendingMessageEventArgs.cs" />
     <Compile Include="RaygunSettings.cs" />
     <EmbeddedResource Include="Properties\Raygun4UWP.rd.xml" />

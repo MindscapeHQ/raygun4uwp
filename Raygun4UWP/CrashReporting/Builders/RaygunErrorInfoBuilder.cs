@@ -8,7 +8,7 @@ using System.Text;
 
 namespace Raygun4UWP
 {
-  public class RaygunErrorInfoBuilder
+  public static class RaygunErrorInfoBuilder
   {
     private const int SIGNATURE_OFFSET_OFFSET = 60; // 0x3c
     private const int SIGNATURE_SIZE = 4;
@@ -27,6 +27,7 @@ namespace Raygun4UWP
       message.Message = exception.Message;
       message.ClassName = FormatTypeName(exceptionType, true);
 
+      // TODO: this should only be on the top error info, not the inner errors
       List<RaygunImageInfo> images = new List<RaygunImageInfo>();
 
       try

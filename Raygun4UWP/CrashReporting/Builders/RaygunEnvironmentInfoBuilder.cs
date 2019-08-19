@@ -7,7 +7,7 @@ using Windows.UI.Xaml;
 
 namespace Raygun4UWP
 {
-  public class RaygunEnvironmentInfoBuilder
+  public static class RaygunEnvironmentInfoBuilder
   {
     public static RaygunEnvironmentInfo Build()
     {
