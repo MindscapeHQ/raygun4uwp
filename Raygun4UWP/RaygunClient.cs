@@ -34,15 +34,6 @@ namespace Raygun4UWP
       BeginSendStoredMessages();
     }
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="RaygunClient" /> class.
-    /// Uses the ApiKey specified in the config file.
-    /// </summary>
-    public RaygunClient()
-      : this(RaygunSettings.Settings.ApiKey)
-    {
-    }
-
     private async void BeginSendStoredMessages()
     {
       await SendStoredMessages();
@@ -427,7 +418,7 @@ namespace Raygun4UWP
     {
       var httpClient = new HttpClient();
 
-      var request = new HttpRequestMessage(HttpMethod.Post, RaygunSettings.Settings.ApiEndpoint);
+      var request = new HttpRequestMessage(HttpMethod.Post, RaygunSettings.Settings.CrashReportingApiEndpoint);
       request.Headers.Add("X-ApiKey", _apiKey);
       request.Content = new HttpStringContent(message, Windows.Storage.Streams.UnicodeEncoding.Utf8, "application/json");
 
@@ -508,11 +499,6 @@ namespace Raygun4UWP
       }
     }
 
-    protected RaygunCrashReport BuildMessage(Exception exception, IList<string> tags, IDictionary userCustomData)
-    {
-      return BuildMessage(exception, tags, userCustomData, null);
-    }
-
     protected RaygunCrashReport BuildMessage(Exception exception, IList<string> tags, IDictionary userCustomData, DateTime? currentTime)
     {
       string version = PackageVersion;
@@ -585,7 +571,7 @@ namespace Raygun4UWP
     {
       if (exception != null && _wrapperExceptions.Any(wrapperException => exception.GetType() == wrapperException && exception.InnerException != null))
       {
-        System.AggregateException aggregate = exception as System.AggregateException;
+        AggregateException aggregate = exception as AggregateException;
         if (aggregate != null)
         {
           foreach (Exception e in aggregate.InnerExceptions)
