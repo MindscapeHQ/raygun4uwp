@@ -6,14 +6,11 @@ namespace Raygun4UWP
   {
     private const string DEFAULT_CR_API_ENDPOINT = "https://api.raygun.com/entries";
 
-    private static readonly RaygunSettings _settings = null;
-
-    public static RaygunSettings Settings
+    public RaygunSettings(string apiKey)
     {
-      get
-      {
-        return _settings ?? new RaygunSettings { ApiKey = "", CrashReportingApiEndpoint = new Uri(DEFAULT_CR_API_ENDPOINT) };
-      }
+      ApiKey = apiKey;
+
+      CrashReportingApiEndpoint = new Uri(DEFAULT_CR_API_ENDPOINT);
     }
 
     public string ApiKey { get; set; }

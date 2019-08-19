@@ -19,20 +19,17 @@ namespace Raygun4UWP
   {
     private const string OFFLINE_DATA_FOLDER = "Raygun4UWPOfflineCrashReports";
 
-    private static RaygunClient _client;
-
-    private readonly string _apiKey;
     private readonly List<Type> _wrapperExceptions = new List<Type>();
 
     private bool _handlingRecursiveErrorSending;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="RaygunClient" /> class.
+    /// Creates a new instance of the <see cref="RaygunClient" /> class.
     /// </summary>
     /// <param name="apiKey">The API key.</param>
     public RaygunClient(string apiKey)
     {
-      _apiKey = apiKey;
+      Settings = new RaygunSettings(apiKey);
 
       _wrapperExceptions.Add(typeof(TargetInvocationException));
 
@@ -40,8 +37,8 @@ namespace Raygun4UWP
     }
 
     /// <summary>
-    /// Creates a new RaygunClient with the given API key.
-    /// The RaygunClient is set on the Current property, and then returned.
+    /// Initializes a new RaygunClient with the given API key.
+    /// The RaygunClient is set on the static Current property, and then returned.
     /// Calling this method a second time does nothing.
     /// </summary>
     /// <param name="apiKey">Your Raygun application API key.</param>
@@ -59,11 +56,12 @@ namespace Raygun4UWP
     /// <summary>
     /// Gets the <see cref="RaygunClient"/> created by the Initialize method.
     /// </summary>
-    public static RaygunClient Current
-    {
-      get { return _client; }
-      private set { _client = value; }
-    }
+    public static RaygunClient Current { get; private set; }
+
+    /// <summary>
+    /// Gets the settings for this RaygunClient instance.
+    /// </summary>
+    public RaygunSettings Settings { get; }
 
     /// <summary>
     /// Gets or sets the user identifier string.
@@ -71,7 +69,7 @@ namespace Raygun4UWP
     public string UserIdentifier { get; set; }
 
     /// <summary>
-    /// Gets or sets richer data about the currently logged-in user
+    /// Gets or sets richer data about the currently logged-in user.
     /// </summary>
     public RaygunUserInfo UserInfo { get; set; }
 
@@ -126,7 +124,7 @@ namespace Raygun4UWP
 
       if (Application.Current != null)
       {
-        Application.Current.UnhandledException += Current_UnhandledException;
+        Application.Current.UnhandledException += Application_UnhandledException;
       }
 
       return Current;
@@ -139,7 +137,7 @@ namespace Raygun4UWP
     {
       if (Application.Current != null)
       {
-        Application.Current.UnhandledException -= Current_UnhandledException;
+        Application.Current.UnhandledException -= Application_UnhandledException;
       }
     }
 
@@ -189,9 +187,9 @@ namespace Raygun4UWP
       SendOrSaveCrashReport(null, raygunCrashReport).Wait(3000);
     }
 
-    private static void Current_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+    private void Application_UnhandledException(object sender, UnhandledExceptionEventArgs e)
     {
-      _client.Send(e.Exception);
+      Send(e.Exception);
     }
 
     private bool InternetAvailable()
@@ -241,7 +239,7 @@ namespace Raygun4UWP
 
     private bool ValidateApiKey()
     {
-      if (string.IsNullOrEmpty(_apiKey))
+      if (string.IsNullOrEmpty(Settings.ApiKey))
       {
         System.Diagnostics.Debug.WriteLine("ApiKey has not been provided, exception will not be logged");
         return false;
@@ -317,8 +315,8 @@ namespace Raygun4UWP
     {
       var httpClient = new HttpClient();
 
-      var request = new HttpRequestMessage(HttpMethod.Post, RaygunSettings.Settings.CrashReportingApiEndpoint);
-      request.Headers.Add("X-ApiKey", _apiKey);
+      var request = new HttpRequestMessage(HttpMethod.Post, Settings.CrashReportingApiEndpoint);
+      request.Headers.Add("X-ApiKey", Settings.ApiKey);
       request.Content = new HttpStringContent(payload, Windows.Storage.Streams.UnicodeEncoding.Utf8, "application/json");
 
       try
