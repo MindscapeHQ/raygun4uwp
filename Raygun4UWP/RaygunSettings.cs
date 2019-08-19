@@ -4,15 +4,15 @@ namespace Raygun4UWP
 {
   public class RaygunSettings
   {
-    private static readonly RaygunSettings settings = null;
+    private const string DEFAULT_API_ENDPOINT = "https://api.raygun.com/entries";
 
-    private const string DefaultApiEndPoint = "https://api.raygun.io/entries";
+    private static readonly RaygunSettings _settings = null;
 
     public static RaygunSettings Settings
     {
       get
       {
-        return settings ?? new RaygunSettings { ApiKey = "", ApiEndpoint = new Uri(DefaultApiEndPoint) };
+        return _settings ?? new RaygunSettings { ApiKey = "", ApiEndpoint = new Uri(DEFAULT_API_ENDPOINT) };
       }
     }
 
