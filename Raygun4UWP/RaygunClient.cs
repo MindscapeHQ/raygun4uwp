@@ -37,10 +37,10 @@ namespace Raygun4UWP
 
       _wrapperExceptions.Add(typeof(TargetInvocationException));
 
-      BeginSendStoredMessages();
+      BeginSendStoredCrashReports();
     }
 
-    private async void BeginSendStoredMessages()
+    private async void BeginSendStoredCrashReports()
     {
       await SendStoredCrashReports();
     }
@@ -55,8 +55,8 @@ namespace Raygun4UWP
       return true;
     }
 
-    // Returns true if the message can be sent, false if the sending is canceled.
-    private bool OnSendingCrashReport(Exception originalException, RaygunCrashReport raygunMessage)
+    // Returns true if the crash report can be sent, false if the sending is canceled.
+    private bool OnSendingCrashReport(Exception originalException, RaygunCrashReport raygunCrashReport)
     {
       bool result = true;
 
@@ -65,14 +65,14 @@ namespace Raygun4UWP
         EventHandler<RaygunSendingCrashReportEventArgs> handler = SendingCrashReport;
         if (handler != null)
         {
-          RaygunSendingCrashReportEventArgs args = new RaygunSendingCrashReportEventArgs(originalException, raygunMessage);
+          RaygunSendingCrashReportEventArgs args = new RaygunSendingCrashReportEventArgs(originalException, raygunCrashReport);
           try
           {
             handler(this, args);
           }
           catch (Exception e)
           {
-            // Catch and send exceptions that occur in the SendingMessage event handler.
+            // Catch and send exceptions that occur in the SendingCrashReport event handler.
             // Set the _handlingRecursiveErrorSending flag to prevent infinite errors.
             _handlingRecursiveErrorSending = true;
             Send(e);
@@ -96,7 +96,7 @@ namespace Raygun4UWP
     public RaygunUserInfo UserInfo { get; set; }
 
     /// <summary>
-    /// Gets or sets a custom application version identifier for all error messages sent to the Raygun.io endpoint.
+    /// Gets or sets a custom application version identifier for all crash reports sent to Raygun.
     /// </summary>
     public string ApplicationVersion { get; set; }
 
@@ -216,7 +216,7 @@ namespace Raygun4UWP
     /// set to a valid DateTime and as much of the Details property as is available.</param>
     public async Task SendAsync(RaygunCrashReport raygunCrashReport)
     {
-      await SendOrSave(null, raygunCrashReport);
+      await SendOrSaveCrashReport(null, raygunCrashReport);
     }
 
     /// <summary>
@@ -237,7 +237,7 @@ namespace Raygun4UWP
     /// set to a valid DateTime and as much of the Details property as is available.</param>
     public void Send(RaygunCrashReport raygunCrashReport)
     {
-      SendOrSave(null, raygunCrashReport).Wait(3000);
+      SendOrSaveCrashReport(null, raygunCrashReport).Wait(3000);
     }
 
     private bool InternetAvailable()
@@ -251,11 +251,11 @@ namespace Raygun4UWP
       return internetAvailable;
     }
 
-    private async Task SendOrSave(Exception originalException, RaygunCrashReport raygunMessage)
+    private async Task SendOrSaveCrashReport(Exception originalException, RaygunCrashReport raygunCrashReport)
     {
       if (ValidateApiKey())
       {
-        bool canSend = OnSendingCrashReport(originalException, raygunMessage);
+        bool canSend = OnSendingCrashReport(originalException, raygunCrashReport);
         if (canSend)
         {
           try
@@ -266,15 +266,15 @@ namespace Raygun4UWP
               Formatting = Formatting.None
             };
 
-            string message = JsonConvert.SerializeObject(raygunMessage, settings);
+            string payload = JsonConvert.SerializeObject(raygunCrashReport, settings);
 
             if (InternetAvailable())
             {
-              await SendMessage(message);
+              await SendCrashReport(payload);
             }
             else
             {
-              await SaveCrashReport(message);
+              await SaveCrashReport(payload);
             }
           }
           catch (Exception ex)
@@ -303,7 +303,7 @@ namespace Raygun4UWP
           foreach (var file in files)
           {
             string text = await FileIO.ReadTextAsync(file).AsTask().ConfigureAwait(false);
-            await SendMessage(text).ConfigureAwait(false);
+            await SendCrashReport(text).ConfigureAwait(false);
 
             await file.DeleteAsync().AsTask().ConfigureAwait(false);
           }
@@ -312,7 +312,7 @@ namespace Raygun4UWP
         }
         catch (Exception ex)
         {
-          Debug.WriteLine(string.Format("Error sending stored messages to Raygun.io {0}", ex.Message));
+          Debug.WriteLine(string.Format("Error sending stored crash reports to Raygun {0}", ex.Message));
         }
         finally
         {
@@ -321,13 +321,13 @@ namespace Raygun4UWP
       }
     }
 
-    private async Task SendMessage(string message)
+    private async Task SendCrashReport(string payload)
     {
       var httpClient = new HttpClient();
 
       var request = new HttpRequestMessage(HttpMethod.Post, RaygunSettings.Settings.CrashReportingApiEndpoint);
       request.Headers.Add("X-ApiKey", _apiKey);
-      request.Content = new HttpStringContent(message, Windows.Storage.Streams.UnicodeEncoding.Utf8, "application/json");
+      request.Content = new HttpStringContent(payload, Windows.Storage.Streams.UnicodeEncoding.Utf8, "application/json");
 
       try
       {
@@ -338,12 +338,12 @@ namespace Raygun4UWP
         Debug.WriteLine("Error Logging Exception to Raygun.io " + ex.Message);
         if (_saveOnFail)
         {
-          SaveCrashReport(message).Wait(3000);
+          SaveCrashReport(payload).Wait(3000);
         }
       }
     }
 
-    private async Task SaveCrashReport(string message)
+    private async Task SaveCrashReport(string payload)
     {
       try
       {
@@ -397,17 +397,17 @@ namespace Raygun4UWP
 
         string fileName = "RaygunCrashReport" + number + ".txt";
         var file = await raygunFolder.CreateFileAsync(fileName).AsTask().ConfigureAwait(false);
-        await FileIO.WriteTextAsync(file, message).AsTask().ConfigureAwait(false);
+        await FileIO.WriteTextAsync(file, payload).AsTask().ConfigureAwait(false);
 
-        Debug.WriteLine($"Saved message: {OFFLINE_DATA_FOLDER}\\{fileName}");
+        Debug.WriteLine($"Saved crash report: {OFFLINE_DATA_FOLDER}\\{fileName}");
       }
       catch (Exception ex)
       {
-        Debug.WriteLine(string.Format("Error saving message to offline storage {0}", ex.Message));
+        Debug.WriteLine(string.Format("Error saving crash report to offline storage {0}", ex.Message));
       }
     }
 
-    private RaygunCrashReport BuildMessage(Exception exception, IList<string> tags, IDictionary userCustomData, DateTime? currentTime)
+    private RaygunCrashReport BuildCrashReport(Exception exception, IList<string> tags, IDictionary userCustomData, DateTime? currentTime)
     {
       string version = PackageVersion;
       if (!String.IsNullOrWhiteSpace(ApplicationVersion))
@@ -415,7 +415,7 @@ namespace Raygun4UWP
         version = ApplicationVersion;
       }
 
-      var message = RaygunCrashReportBuilder.New
+      var crashReport = RaygunCrashReportBuilder.New
           .SetEnvironmentInfo()
           .SetOccurredOn(currentTime)
           .SetMachineName(new EasClientDeviceInformation().FriendlyName)
@@ -427,7 +427,7 @@ namespace Raygun4UWP
           .SetUserInfo(UserInfo ?? (!String.IsNullOrEmpty(User) ? new RaygunUserInfo(User) : null))
           .Build();
 
-      return message;
+      return crashReport;
     }
 
     private string PackageVersion
@@ -454,7 +454,7 @@ namespace Raygun4UWP
       var currentTime = DateTime.UtcNow;
       foreach (Exception e in StripWrapperExceptions(exception))
       {
-        SendOrSave(e, BuildMessage(e, tags, userCustomData, currentTime)).Wait(3000);
+        SendOrSaveCrashReport(e, BuildCrashReport(e, tags, userCustomData, currentTime)).Wait(3000);
       }
     }
 
@@ -464,7 +464,7 @@ namespace Raygun4UWP
       var currentTime = DateTime.UtcNow;
       foreach (Exception e in StripWrapperExceptions(exception))
       {
-        tasks.Add(SendOrSave(e, BuildMessage(e, tags, userCustomData, currentTime)));
+        tasks.Add(SendOrSaveCrashReport(e, BuildCrashReport(e, tags, userCustomData, currentTime)));
       }
       await Task.WhenAll(tasks);
     }
