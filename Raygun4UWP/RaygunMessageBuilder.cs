@@ -34,7 +34,7 @@ namespace Raygun4UWP
 
     public IRaygunMessageBuilder SetEnvironmentDetails()
     {
-      _raygunMessage.Details.Environment = RaygunEnvironmentMessageBuilder.Build();
+      _raygunMessage.Details.Environment = RaygunEnvironmentInfoBuilder.Build();
       return this;
     }
 
@@ -42,7 +42,7 @@ namespace Raygun4UWP
     {
       if (exception != null)
       {
-        _raygunMessage.Details.Error = RaygunErrorMessageBuilder.Build(exception);
+        _raygunMessage.Details.Error = RaygunErrorInfoBuilder.Build(exception);
       }
       return this;
     }

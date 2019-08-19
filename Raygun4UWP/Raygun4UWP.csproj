@@ -120,8 +120,8 @@
     <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Builders\RaygunEnvironmentMessageBuilder.cs" />
-    <Compile Include="Builders\RaygunErrorMessageBuilder.cs" />
+    <Compile Include="CrashReporting\Builders\RaygunEnvironmentInfoBuilder.cs" />
+    <Compile Include="CrashReporting\Builders\RaygunErrorInfoBuilder.cs" />
     <Compile Include="IRaygunMessageBuilder.cs" />
     <Compile Include="CrashReporting\PayloadModels\RaygunClientInfo.cs" />
     <Compile Include="CrashReporting\PayloadModels\RaygunImageDebugInfo.cs" />

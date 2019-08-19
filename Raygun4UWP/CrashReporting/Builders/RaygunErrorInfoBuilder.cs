@@ -8,7 +8,7 @@ using System.Text;
 
 namespace Raygun4UWP
 {
-  public class RaygunErrorMessageBuilder
+  public class RaygunErrorInfoBuilder
   {
     private const int SIGNATURE_OFFSET_OFFSET = 60; // 0x3c
     private const int SIGNATURE_SIZE = 4;
