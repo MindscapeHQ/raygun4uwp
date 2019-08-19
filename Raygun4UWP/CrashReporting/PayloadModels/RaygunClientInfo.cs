@@ -3,9 +3,9 @@ using System.Reflection;
 
 namespace Raygun4UWP
 {
-  public class RaygunClientMessage
+  public class RaygunClientInfo
   {
-    public RaygunClientMessage()
+    public RaygunClientInfo()
     {
       Name = ((AssemblyTitleAttribute)GetType().GetTypeInfo().Assembly.GetCustomAttributes(typeof(AssemblyTitleAttribute)).First()).Title;
       Version = GetType().GetTypeInfo().Assembly.GetName().Version.ToString();

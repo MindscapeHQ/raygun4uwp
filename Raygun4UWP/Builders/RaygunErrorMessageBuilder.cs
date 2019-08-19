@@ -18,16 +18,16 @@ namespace Raygun4UWP
     private const int DEBUG_DATA_DIRECTORY_OFFSET_64 = 160;
     private const int DEBUG_DIRECTORY_SIZE = 28;
 
-    public static RaygunErrorMessage Build(Exception exception)
+    public static RaygunErrorInfo Build(Exception exception)
     {
-      RaygunErrorMessage message = new RaygunErrorMessage();
+      RaygunErrorInfo message = new RaygunErrorInfo();
 
       var exceptionType = exception.GetType();
       
       message.Message = exception.Message;
       message.ClassName = FormatTypeName(exceptionType, true);
 
-      List<RaygunImageMessage> images = new List<RaygunImageMessage>();
+      List<RaygunImageInfo> images = new List<RaygunImageInfo>();
 
       try
       {
@@ -52,7 +52,7 @@ namespace Raygun4UWP
       AggregateException ae = exception as AggregateException;
       if (ae?.InnerExceptions != null)
       {
-        message.InnerErrors = new RaygunErrorMessage[ae.InnerExceptions.Count];
+        message.InnerErrors = new RaygunErrorInfo[ae.InnerExceptions.Count];
         int index = 0;
         foreach (Exception e in ae.InnerExceptions)
         {
@@ -95,9 +95,9 @@ namespace Raygun4UWP
       return stringBuilder.ToString();
     }
 
-    private static RaygunErrorStackTraceLineMessage[] BuildStackTrace(Exception exception)
+    private static RaygunStackTraceFrame[] BuildStackTrace(Exception exception)
     {
-      var lines = new List<RaygunErrorStackTraceLineMessage>();
+      var lines = new List<RaygunStackTraceFrame>();
 
       //TODO: there are parsing improvements we can make for when code optimization is disabled
       if (exception.StackTrace != null)
@@ -113,7 +113,7 @@ namespace Raygun4UWP
             stackTraceLine = stackTraceLine.Substring(3);
           }
 
-          RaygunErrorStackTraceLineMessage stackTraceLineMessage = new RaygunErrorStackTraceLineMessage
+          RaygunStackTraceFrame stackTraceLineMessage = new RaygunStackTraceFrame
           {
             Raw = stackTraceLine
           };
@@ -137,9 +137,9 @@ namespace Raygun4UWP
       return lines.Count == 0 ? null : lines.ToArray();
     }
 
-    private static RaygunErrorNativeStackTraceLineMessage[] BuildNativeStackTrace(List<RaygunImageMessage> images, Exception exception)
+    private static RaygunNativeStackTraceFrame[] BuildNativeStackTrace(List<RaygunImageInfo> images, Exception exception)
     {
-      var lines = new List<RaygunErrorNativeStackTraceLineMessage>();
+      var lines = new List<RaygunNativeStackTraceFrame>();
       
       var stackTrace = new StackTrace(exception, true);
       var frames = stackTrace.GetFrames();
@@ -188,10 +188,10 @@ namespace Raygun4UWP
 
             int debugDirectoryCount = debugSize / DEBUG_DIRECTORY_SIZE;
 
-            RaygunImageMessage image = new RaygunImageMessage
+            RaygunImageInfo image = new RaygunImageInfo
             {
               BaseAddress = nativeImageBaseLong,
-              DebugInfo = new RaygunDebugInfoMessage[debugDirectoryCount]
+              DebugInfo = new RaygunImageDebugInfo[debugDirectoryCount]
             };
 
             for (int i = 0; i < debugDirectoryCount; i++)
@@ -220,7 +220,7 @@ namespace Raygun4UWP
 
               string pdbFileName = Encoding.UTF8.GetString(fileNameArray, 0, fileNameArray.Length);
 
-              image.DebugInfo[i] = new RaygunDebugInfoMessage
+              image.DebugInfo[i] = new RaygunImageDebugInfo
               {
                 PdbFileName = pdbFileName,
                 Guid = debugGuid.ToString()
@@ -230,7 +230,7 @@ namespace Raygun4UWP
             images.Add(image);
           }
           
-          var line = new RaygunErrorNativeStackTraceLineMessage
+          var line = new RaygunNativeStackTraceFrame
           {
             IP = nativeIP.ToInt64(),
             ImageBase = nativeImageBaseLong

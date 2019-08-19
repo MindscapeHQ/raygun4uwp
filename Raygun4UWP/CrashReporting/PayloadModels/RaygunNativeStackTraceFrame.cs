@@ -1,6 +1,6 @@
 ﻿namespace Raygun4UWP
 {
-  public class RaygunErrorNativeStackTraceLineMessage
+  public class RaygunNativeStackTraceFrame
   {
     public long IP { get; set; }
 

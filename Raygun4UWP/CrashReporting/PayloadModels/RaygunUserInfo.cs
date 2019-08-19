@@ -1,8 +1,8 @@
 ﻿namespace Raygun4UWP
 {
-  public class RaygunIdentifierMessage
+  public class RaygunUserInfo
   {
-    public RaygunIdentifierMessage(string user)
+    public RaygunUserInfo(string user)
     {
       Identifier = user;
     }

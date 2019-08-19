@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Raygun4UWP
 {
-  public class RaygunMessageDetails
+  public class RaygunCrashReportDetails
   {
     public string MachineName { get; set; }
 
@@ -11,17 +11,17 @@ namespace Raygun4UWP
 
     public string Version { get; set; }
 
-    public RaygunErrorMessage Error { get; set; }
+    public RaygunErrorInfo Error { get; set; }
 
-    public RaygunEnvironmentMessage Environment { get; set; }
+    public RaygunEnvironmentInfo Environment { get; set; }
 
-    public RaygunClientMessage Client { get; set; }
+    public RaygunClientInfo Client { get; set; }
 
     public IList<string> Tags { get; set; }
 
     public IDictionary UserCustomData { get; set; }
 
-    public RaygunIdentifierMessage User { get; set; }
+    public RaygunUserInfo User { get; set; }
 
     public override string ToString()
     {

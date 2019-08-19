@@ -7,11 +7,11 @@ namespace Raygun4UWP
   /// </summary>
   public class RaygunSendingMessageEventArgs : CancelEventArgs
   {
-    public RaygunSendingMessageEventArgs(RaygunMessage message)
+    public RaygunSendingMessageEventArgs(RaygunCrashReport message)
     {
       Message = message;
     }
 
-    public RaygunMessage Message { get; private set; }
+    public RaygunCrashReport Message { get; private set; }
   }
 }

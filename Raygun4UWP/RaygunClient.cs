@@ -61,7 +61,7 @@ namespace Raygun4UWP
     private bool _handlingRecursiveErrorSending;
 
     // Returns true if the message can be sent, false if the sending is canceled.
-    protected bool OnSendingMessage(RaygunMessage raygunMessage)
+    protected bool OnSendingMessage(RaygunCrashReport raygunMessage)
     {
       bool result = true;
 
@@ -96,7 +96,7 @@ namespace Raygun4UWP
     public event EventHandler<RaygunCustomGroupingKeyEventArgs> CustomGroupingKey;
 
     private bool _handlingRecursiveGrouping;
-    protected string OnCustomGroupingKey(Exception exception, RaygunMessage message)
+    protected string OnCustomGroupingKey(Exception exception, RaygunCrashReport message)
     {
       string result = null;
       if (!_handlingRecursiveGrouping)
@@ -129,7 +129,7 @@ namespace Raygun4UWP
     /// <summary>
     /// Gets or sets richer data about the currently logged-in user
     /// </summary>
-    public RaygunIdentifierMessage UserInfo { get; set; }
+    public RaygunUserInfo UserInfo { get; set; }
 
     /// <summary>
     /// Gets or sets a custom application version identifier for all error messages sent to the Raygun.io endpoint.
@@ -137,7 +137,7 @@ namespace Raygun4UWP
     public string ApplicationVersion { get; set; }
 
     /// <summary>
-    /// Raised just before a message is sent. This can be used to make final adjustments to the <see cref="RaygunMessage"/>, or to cancel the send.
+    /// Raised just before a message is sent. This can be used to make final adjustments to the <see cref="RaygunCrashReport"/>, or to cancel the send.
     /// </summary>
     public event EventHandler<RaygunSendingMessageEventArgs> SendingMessage;
 
@@ -287,7 +287,7 @@ namespace Raygun4UWP
     /// </summary>
     /// <param name="raygunMessage">The RaygunMessage to send. This needs its OccurredOn property
     /// set to a valid DateTime and as much of the Details property as is available.</param>
-    public async Task SendAsync(RaygunMessage raygunMessage)
+    public async Task SendAsync(RaygunCrashReport raygunMessage)
     {
       await SendOrSave(raygunMessage);
     }
@@ -337,7 +337,7 @@ namespace Raygun4UWP
     /// </summary>
     /// <param name="raygunMessage">The RaygunMessage to send. This needs its OccurredOn property
     /// set to a valid DateTime and as much of the Details property as is available.</param>
-    public void Send(RaygunMessage raygunMessage)
+    public void Send(RaygunCrashReport raygunMessage)
     {
       SendOrSave(raygunMessage).Wait(3000);
     }
@@ -353,7 +353,7 @@ namespace Raygun4UWP
       return internetAvailable;
     }
 
-    private async Task SendOrSave(RaygunMessage raygunMessage)
+    private async Task SendOrSave(RaygunCrashReport raygunMessage)
     {
       if (ValidateApiKey())
       {
@@ -508,12 +508,12 @@ namespace Raygun4UWP
       }
     }
 
-    protected RaygunMessage BuildMessage(Exception exception, IList<string> tags, IDictionary userCustomData)
+    protected RaygunCrashReport BuildMessage(Exception exception, IList<string> tags, IDictionary userCustomData)
     {
       return BuildMessage(exception, tags, userCustomData, null);
     }
 
-    protected RaygunMessage BuildMessage(Exception exception, IList<string> tags, IDictionary userCustomData, DateTime? currentTime)
+    protected RaygunCrashReport BuildMessage(Exception exception, IList<string> tags, IDictionary userCustomData, DateTime? currentTime)
     {
       string version = PackageVersion;
       if (!String.IsNullOrWhiteSpace(ApplicationVersion))
@@ -530,7 +530,7 @@ namespace Raygun4UWP
           .SetVersion(version)
           .SetTags(tags)
           .SetUserCustomData(userCustomData)
-          .SetUser(UserInfo ?? (!String.IsNullOrEmpty(User) ? new RaygunIdentifierMessage(User) : null))
+          .SetUser(UserInfo ?? (!String.IsNullOrEmpty(User) ? new RaygunUserInfo(User) : null))
           .Build();
 
       var customGroupingKey = OnCustomGroupingKey(exception, message);

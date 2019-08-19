@@ -7,14 +7,14 @@ namespace Raygun4UWP
   /// </summary>
   public class RaygunCustomGroupingKeyEventArgs : EventArgs
   {
-    public RaygunCustomGroupingKeyEventArgs(Exception exception, RaygunMessage message)
+    public RaygunCustomGroupingKeyEventArgs(Exception exception, RaygunCrashReport message)
     {
       Exception = exception;
       Message = message;
     }
 
     public Exception Exception { get; private set; }
-    public RaygunMessage Message { get; private set; }
+    public RaygunCrashReport Message { get; private set; }
 
     public string CustomGroupingKey { get; set; }
   }

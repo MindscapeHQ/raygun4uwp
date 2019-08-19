@@ -14,14 +14,14 @@ namespace Raygun4UWP
       }
     }
 
-    private readonly RaygunMessage _raygunMessage;
+    private readonly RaygunCrashReport _raygunMessage;
 
     private RaygunMessageBuilder()
     {
-      _raygunMessage = new RaygunMessage();
+      _raygunMessage = new RaygunCrashReport();
     }
 
-    public RaygunMessage Build()
+    public RaygunCrashReport Build()
     {
       return _raygunMessage;
     }
@@ -49,7 +49,7 @@ namespace Raygun4UWP
 
     public IRaygunMessageBuilder SetClientDetails()
     {
-      _raygunMessage.Details.Client = new RaygunClientMessage();
+      _raygunMessage.Details.Client = new RaygunClientInfo();
       return this;
     }
 
@@ -65,7 +65,7 @@ namespace Raygun4UWP
       return this;
     }
 
-    public IRaygunMessageBuilder SetUser(RaygunIdentifierMessage user)
+    public IRaygunMessageBuilder SetUser(RaygunUserInfo user)
     {
       _raygunMessage.Details.User = user;
       return this;

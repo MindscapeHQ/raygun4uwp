@@ -9,9 +9,9 @@ namespace Raygun4UWP
 {
   public class RaygunEnvironmentMessageBuilder
   {
-    public static RaygunEnvironmentMessage Build()
+    public static RaygunEnvironmentInfo Build()
     {
-      RaygunEnvironmentMessage message = new RaygunEnvironmentMessage();
+      RaygunEnvironmentInfo message = new RaygunEnvironmentInfo();
 
       try
       {

@@ -2,17 +2,17 @@
 
 namespace Raygun4UWP
 {
-  public class RaygunMessage
+  public class RaygunCrashReport
   {
-    public RaygunMessage()
+    public RaygunCrashReport()
     {
       OccurredOn = DateTime.UtcNow;
-      Details = new RaygunMessageDetails();
+      Details = new RaygunCrashReportDetails();
     }
 
     public DateTime OccurredOn { get; set; }
 
-    public RaygunMessageDetails Details { get; set; }
+    public RaygunCrashReportDetails Details { get; set; }
 
     public override string ToString()
     {

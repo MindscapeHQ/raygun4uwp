@@ -1,6 +1,6 @@
 ﻿namespace Raygun4UWP
 {
-  public class RaygunEnvironmentMessage
+  public class RaygunEnvironmentInfo
   {
     public string OSVersion { get; set; }
 

@@ -6,7 +6,7 @@ namespace Raygun4UWP
 {
   public interface IRaygunMessageBuilder
   {
-    RaygunMessage Build();
+    RaygunCrashReport Build();
 
     IRaygunMessageBuilder SetMachineName(string machineName);
 
@@ -22,7 +22,7 @@ namespace Raygun4UWP
 
     IRaygunMessageBuilder SetTags(IList<string> tags);
 
-    IRaygunMessageBuilder SetUser(RaygunIdentifierMessage user);
+    IRaygunMessageBuilder SetUser(RaygunUserInfo user);
 
     IRaygunMessageBuilder SetTimeStamp(DateTime? currentTime);
 

@@ -1,6 +1,6 @@
 ﻿namespace Raygun4UWP
 {
-  public class RaygunErrorStackTraceLineMessage
+  public class RaygunStackTraceFrame
   {
     public int? LineNumber { get; set; }
 
