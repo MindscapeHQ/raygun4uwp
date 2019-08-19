@@ -407,7 +407,7 @@ namespace Raygun4UWP
       }
     }
 
-    protected RaygunCrashReport BuildMessage(Exception exception, IList<string> tags, IDictionary userCustomData, DateTime? currentTime)
+    private RaygunCrashReport BuildMessage(Exception exception, IList<string> tags, IDictionary userCustomData, DateTime? currentTime)
     {
       string version = PackageVersion;
       if (!String.IsNullOrWhiteSpace(ApplicationVersion))
@@ -469,7 +469,7 @@ namespace Raygun4UWP
       await Task.WhenAll(tasks);
     }
 
-    protected IEnumerable<Exception> StripWrapperExceptions(Exception exception)
+    private IEnumerable<Exception> StripWrapperExceptions(Exception exception)
     {
       if (exception != null && _wrapperExceptions.Any(wrapperException => exception.GetType() == wrapperException && exception.InnerException != null))
       {
