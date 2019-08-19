@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Reflection;
 
 namespace Raygun4UWP
 {
@@ -11,10 +13,18 @@ namespace Raygun4UWP
       ApiKey = apiKey;
 
       CrashReportingApiEndpoint = new Uri(DEFAULT_CR_API_ENDPOINT);
+
+      StrippedWrapperExceptions = new List<Type> {typeof(TargetInvocationException)};
     }
 
     public string ApiKey { get; set; }
 
     public Uri CrashReportingApiEndpoint { get; set; }
+
+    /// <summary>
+    /// A list of outer exceptions that will be stripped, leaving only the valuable inner exception.
+    /// TargetInvocationException is included in this list by default.
+    /// </summary>
+    public IList<Type> StrippedWrapperExceptions { get; set; }
   }
 }

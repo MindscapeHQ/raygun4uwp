@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 using Windows.Networking.Connectivity;
 using Windows.Security.ExchangeActiveSyncProvisioning;
@@ -19,8 +18,6 @@ namespace Raygun4UWP
   {
     private const string OFFLINE_DATA_FOLDER = "Raygun4UWPOfflineCrashReports";
 
-    private readonly List<Type> _wrapperExceptions = new List<Type>();
-
     private bool _handlingRecursiveErrorSending;
 
     /// <summary>
@@ -30,8 +27,6 @@ namespace Raygun4UWP
     public RaygunClient(string apiKey)
     {
       Settings = new RaygunSettings(apiKey);
-
-      _wrapperExceptions.Add(typeof(TargetInvocationException));
 
       BeginSendStoredCrashReports();
     }
@@ -82,38 +77,6 @@ namespace Raygun4UWP
     /// Raised just before any RaygunCrashReport is sent. This can be used to make final adjustments to the <see cref="RaygunCrashReport"/>, or to cancel the send.
     /// </summary>
     public event EventHandler<RaygunSendingCrashReportEventArgs> SendingCrashReport;
-
-    /// <summary>
-    /// Adds a list of outer exceptions that will be stripped, leaving only the valuable inner exception.
-    /// This can be used when a wrapper exception, e.g. TargetInvocationException,
-    /// contains the actual exception as the InnerException. The message and stack trace of the inner exception will then
-    /// be used by Raygun for grouping and display. TargetInvocationException is added for you,
-    /// but if you have other wrapper exceptions that you want stripped you can pass them in here.
-    /// </summary>
-    /// <param name="wrapperExceptions">Exception types that you want removed and replaced with their inner exception.</param>
-    public void AddWrapperExceptions(params Type[] wrapperExceptions)
-    {
-      foreach (Type wrapper in wrapperExceptions)
-      {
-        if (!_wrapperExceptions.Contains(wrapper))
-        {
-          _wrapperExceptions.Add(wrapper);
-        }
-      }
-    }
-
-    /// <summary>
-    /// Specifies types of wrapper exceptions that Raygun should send rather than stripping out and sending the inner exception.
-    /// This can be used to remove the default wrapper exception (TargetInvocationException).
-    /// </summary>
-    /// <param name="wrapperExceptions">Exception types that should no longer be stripped away.</param>
-    public void RemoveWrapperExceptions(params Type[] wrapperExceptions)
-    {
-      foreach (Type wrapper in wrapperExceptions)
-      {
-        _wrapperExceptions.Remove(wrapper);
-      }
-    }
 
     /// <summary>
     /// Causes Raygun to listen to and send all unhandled exceptions.
@@ -198,8 +161,8 @@ namespace Raygun4UWP
       var internetProfile = NetworkInformation.GetInternetConnectionProfile();
 
       bool internetAvailable = connections != null && connections.Any(c =>
-        c.GetNetworkConnectivityLevel() == NetworkConnectivityLevel.InternetAccess) ||
-        (internetProfile != null && internetProfile.GetNetworkConnectivityLevel() == NetworkConnectivityLevel.InternetAccess);
+                                 c.GetNetworkConnectivityLevel() == NetworkConnectivityLevel.InternetAccess) ||
+                               (internetProfile != null && internetProfile.GetNetworkConnectivityLevel() == NetworkConnectivityLevel.InternetAccess);
       return internetAvailable;
     }
 
@@ -244,6 +207,7 @@ namespace Raygun4UWP
         System.Diagnostics.Debug.WriteLine("ApiKey has not been provided, exception will not be logged");
         return false;
       }
+
       return true;
     }
 
@@ -270,6 +234,7 @@ namespace Raygun4UWP
             Send(e);
             _handlingRecursiveErrorSending = false;
           }
+
           result = !args.Cancel;
         }
       }
@@ -367,7 +332,9 @@ namespace Raygun4UWP
 
               await nextFile.DeleteAsync().AsTask().ConfigureAwait(false);
             }
-            catch (FileNotFoundException) { }
+            catch (FileNotFoundException)
+            {
+            }
 
             break;
           }
@@ -382,7 +349,9 @@ namespace Raygun4UWP
             StorageFile firstFile = await raygunFolder.GetFileAsync("RaygunCrashReport1.txt").AsTask().ConfigureAwait(false);
             await firstFile.DeleteAsync().AsTask().ConfigureAwait(false);
           }
-          catch (FileNotFoundException) { }
+          catch (FileNotFoundException)
+          {
+          }
         }
 
         string fileName = $"RaygunCrashReport{number}.txt";
@@ -402,16 +371,16 @@ namespace Raygun4UWP
       string version = string.IsNullOrWhiteSpace(ApplicationVersion) ? GetPackageVersion() : ApplicationVersion;
 
       var crashReport = RaygunCrashReportBuilder.New
-          .SetEnvironmentInfo()
-          .SetOccurredOn(currentTime)
-          .SetMachineName(new EasClientDeviceInformation().FriendlyName)
-          .SetErrorInfo(exception)
-          .SetClientInfo()
-          .SetVersion(version)
-          .SetTags(tags)
-          .SetCustomData(userCustomData)
-          .SetUserInfo(UserInfo ?? (!string.IsNullOrEmpty(UserIdentifier) ? new RaygunUserInfo(UserIdentifier) : null))
-          .Build();
+        .SetEnvironmentInfo()
+        .SetOccurredOn(currentTime)
+        .SetMachineName(new EasClientDeviceInformation().FriendlyName)
+        .SetErrorInfo(exception)
+        .SetClientInfo()
+        .SetVersion(version)
+        .SetTags(tags)
+        .SetCustomData(userCustomData)
+        .SetUserInfo(UserInfo ?? (!string.IsNullOrEmpty(UserIdentifier) ? new RaygunUserInfo(UserIdentifier) : null))
+        .Build();
 
       return crashReport;
     }
@@ -450,12 +419,13 @@ namespace Raygun4UWP
       {
         tasks.Add(SendOrSaveCrashReport(e, BuildCrashReport(e, tags, userCustomData, currentTime)));
       }
+
       await Task.WhenAll(tasks);
     }
 
     private IEnumerable<Exception> StripWrapperExceptions(Exception exception)
     {
-      if (exception != null && _wrapperExceptions.Any(wrapperException => exception.GetType() == wrapperException && exception.InnerException != null))
+      if (exception != null && Settings.StrippedWrapperExceptions.Any(wrapperException => exception.GetType() == wrapperException && exception.InnerException != null))
       {
         AggregateException aggregate = exception as AggregateException;
         if (aggregate != null)
