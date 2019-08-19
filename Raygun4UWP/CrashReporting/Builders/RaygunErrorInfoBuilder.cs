@@ -191,41 +191,30 @@ namespace Raygun4UWP
 
             RaygunImageInfo image = new RaygunImageInfo
             {
-              BaseAddress = nativeImageBaseLong,
-              DebugInfo = new RaygunImageDebugInfo[debugDirectoryCount]
+              BaseAddress = nativeImageBaseLong
             };
+
+            List<RaygunImageDebugInfo> debugInfo = new List<RaygunImageDebugInfo>();
 
             for (int i = 0; i < debugDirectoryCount; i++)
             {
               int debugDirectoryAddress = debugVirtualAddress + (i * DEBUG_DIRECTORY_SIZE);
               
-              // TODO: check that this is 2
               int type = CopyInt32(nativeImageBase + debugDirectoryAddress + 12);
 
-              int sizeOfData = CopyInt32(nativeImageBase + debugDirectoryAddress + 16);
-
-              int addressOfRawData = CopyInt32(nativeImageBase + debugDirectoryAddress + 20);
-              
-              // Debug information:
-              // Reference: http://www.godevtool.com/Other/pdb.htm
-
-              // TODO: check that this is "RSDS" before looking into subsequent values
-              int debugSignature = CopyInt32(nativeImageBase + addressOfRawData);
-
-              byte[] debugGuidArray = new byte[16];
-              Marshal.Copy(nativeImageBase + addressOfRawData + 4, debugGuidArray, 0, 16);
-              Guid debugGuid = new Guid(debugGuidArray);
-              
-              byte[] fileNameArray = new byte[sizeOfData - 24];
-              Marshal.Copy(nativeImageBase + addressOfRawData + 24, fileNameArray, 0, sizeOfData - 24);
-
-              string pdbFileName = Encoding.UTF8.GetString(fileNameArray, 0, fileNameArray.Length);
-
-              image.DebugInfo[i] = new RaygunImageDebugInfo
+              if (type == (int)DebugDirectoryEntryType.CodeView)
               {
-                PdbFileName = pdbFileName,
-                Guid = debugGuid.ToString()
-              };
+                int sizeOfData = CopyInt32(nativeImageBase + debugDirectoryAddress + 16);
+
+                int addressOfRawData = CopyInt32(nativeImageBase + debugDirectoryAddress + 20);
+
+                debugInfo.Add(ReadDebugInformation(nativeImageBase, addressOfRawData, sizeOfData));
+              }
+            }
+
+            if (debugInfo.Count > 0)
+            {
+              image.DebugInfo = debugInfo.ToArray();
             }
             
             images.Add(image);
@@ -242,6 +231,36 @@ namespace Raygun4UWP
       }
 
       return lines.Count == 0 ? null : lines.ToArray();
+    }
+
+    private static RaygunImageDebugInfo ReadDebugInformation(IntPtr nativeImageBase, int address, int size)
+    {
+      // Debug information:
+      // -------------------
+      // Reference: http://www.godevtool.com/Other/pdb.htm
+      // -------------------
+      // +0     dword          "RSDS" signature
+      // +4     GUID           16 - byte Globally Unique Identifier
+      // +20    dword          a value which is incremented each time the executable and its associated pdb file is remade by the linker 
+      // +24    byte string    zero terminated UTF8 path and file name
+
+      // TODO: check that this is "RSDS" before looking into subsequent values
+      int debugSignature = CopyInt32(nativeImageBase + address);
+
+      byte[] debugGuidArray = new byte[16];
+      Marshal.Copy(nativeImageBase + address + 4, debugGuidArray, 0, 16);
+      Guid debugGuid = new Guid(debugGuidArray);
+
+      byte[] fileNameArray = new byte[size - 24];
+      Marshal.Copy(nativeImageBase + address + 24, fileNameArray, 0, size - 24);
+
+      string pdbFileName = Encoding.UTF8.GetString(fileNameArray, 0, fileNameArray.Length);
+
+      return new RaygunImageDebugInfo
+      {
+        PdbFileName = pdbFileName,
+        Guid = debugGuid.ToString()
+      };
     }
 
     private static short CopyInt16(IntPtr address)
