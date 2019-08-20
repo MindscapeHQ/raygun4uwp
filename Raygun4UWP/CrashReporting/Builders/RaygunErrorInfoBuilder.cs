@@ -109,7 +109,6 @@ namespace Raygun4UWP
     {
       var lines = new List<RaygunStackTraceFrame>();
 
-      //TODO: there are parsing improvements we can make for when code optimization is disabled
       if (exception.StackTrace != null)
       {
         char[] separators = {'\r', '\n'};
@@ -129,14 +128,64 @@ namespace Raygun4UWP
           };
 
           // Extract the method name and class name if possible:
-          int index = stackTraceLine.IndexOf("(");
-          if (index > 0)
+          int methodIndex = stackTraceLine.IndexOf("(");
+          if (methodIndex > 0)
           {
-            index = stackTraceLine.LastIndexOf(".", index);
-            if (index > 0)
+            if (stackTraceLine[methodIndex - 1] == '>')
             {
-              stackTraceLineMessage.ClassName = stackTraceLine.Substring(0, index);
-              stackTraceLineMessage.MethodName = stackTraceLine.Substring(index + 1);
+              // The method has generic parameters, so we need to do a little more work to find the separation between class and method names
+
+              methodIndex -= 2; // start before the angle bracket we just found
+              int angleBracketPairing = 1;
+              while (methodIndex > 0 && angleBracketPairing != 0)
+              {
+                char c = stackTraceLine[methodIndex];
+                if (c == '>')
+                {
+                  angleBracketPairing++;
+                }
+                else if (c == '<')
+                {
+                  angleBracketPairing--;
+                }
+                methodIndex--;
+              }
+            }
+
+            methodIndex = stackTraceLine.LastIndexOf(".", methodIndex);
+            if (methodIndex > 0)
+            {
+              stackTraceLineMessage.ClassName = stackTraceLine.Substring(0, methodIndex);
+
+              methodIndex += 1;
+              int fileNameIndex = stackTraceLine.IndexOf(" in ", methodIndex);
+              if (fileNameIndex > 0)
+              {
+                stackTraceLineMessage.MethodName = stackTraceLine.Substring(methodIndex, fileNameIndex - methodIndex);
+
+                fileNameIndex += 4;
+                int lineNumberIndex = stackTraceLine.IndexOf(":line ", fileNameIndex);
+                if (lineNumberIndex > 0)
+                {
+                  stackTraceLineMessage.FileName = stackTraceLine.Substring(fileNameIndex, lineNumberIndex - fileNameIndex);
+
+                  lineNumberIndex += 6;
+                  string lineNumberStr = stackTraceLine.Substring(lineNumberIndex);
+                  int lineNumber;
+                  if (int.TryParse(lineNumberStr, out lineNumber))
+                  {
+                    stackTraceLineMessage.LineNumber = lineNumber;
+                  }
+                }
+                else
+                {
+                  stackTraceLineMessage.FileName = stackTraceLine.Substring(fileNameIndex);
+                }
+              }
+              else
+              {
+                stackTraceLineMessage.MethodName = stackTraceLine.Substring(methodIndex);
+              }
             }
           }
 
