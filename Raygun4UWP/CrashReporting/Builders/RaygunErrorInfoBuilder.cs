@@ -10,6 +10,11 @@ namespace Raygun4UWP
 {
   public static class RaygunErrorInfoBuilder
   {
+    private const string CLASS_NAME_PREFIX = "at ";
+    private const string METHOD_NAME_PREFIX = ".";
+    private const string FILE_NAME_PREFIX = " in ";
+    private const string LINE_NUMBER_PREFIX = ":line ";
+
     private const int SIGNATURE_OFFSET_OFFSET = 60; // 0x3c
     private const int SIGNATURE_SIZE = 4;
     private const int COFF_FILE_HEADER_SIZE = 20;
@@ -117,9 +122,9 @@ namespace Raygun4UWP
         {
           // Trim the stack trace line
           string stackTraceLine = line.Trim();
-          if (stackTraceLine.StartsWith("at "))
+          if (stackTraceLine.StartsWith(CLASS_NAME_PREFIX))
           {
-            stackTraceLine = stackTraceLine.Substring(3);
+            stackTraceLine = stackTraceLine.Substring(CLASS_NAME_PREFIX.Length);
           }
 
           RaygunStackTraceFrame stackTraceLineMessage = new RaygunStackTraceFrame
@@ -127,19 +132,19 @@ namespace Raygun4UWP
             Raw = stackTraceLine
           };
 
-          // Extract the method name and class name if possible:
-          int methodIndex = stackTraceLine.IndexOf("(");
-          if (methodIndex > 0)
+          // Find the separation between class name and method name:
+          int methodNameIndex = stackTraceLine.IndexOf("(");
+          if (methodNameIndex > 0)
           {
-            if (stackTraceLine[methodIndex - 1] == '>')
+            if (stackTraceLine[methodNameIndex - 1] == '>')
             {
               // The method has generic parameters, so we need to do a little more work to find the separation between class and method names
 
-              methodIndex -= 2; // start before the angle bracket we just found
+              methodNameIndex -= 2; // start before the angle bracket we just found
               int angleBracketPairing = 1;
-              while (methodIndex > 0 && angleBracketPairing != 0)
+              while (methodNameIndex > 0 && angleBracketPairing != 0)
               {
-                char c = stackTraceLine[methodIndex];
+                char c = stackTraceLine[methodNameIndex];
                 if (c == '>')
                 {
                   angleBracketPairing++;
@@ -148,28 +153,32 @@ namespace Raygun4UWP
                 {
                   angleBracketPairing--;
                 }
-                methodIndex--;
+                methodNameIndex--;
               }
             }
 
-            methodIndex = stackTraceLine.LastIndexOf(".", methodIndex);
-            if (methodIndex > 0)
+            methodNameIndex = stackTraceLine.LastIndexOf(METHOD_NAME_PREFIX, methodNameIndex);
+            if (methodNameIndex > 0)
             {
-              stackTraceLineMessage.ClassName = stackTraceLine.Substring(0, methodIndex);
+              // After finding the separation between class name and method name, the class name is the first part of the string:
+              stackTraceLineMessage.ClassName = stackTraceLine.Substring(0, methodNameIndex);
 
-              methodIndex += 1;
-              int fileNameIndex = stackTraceLine.IndexOf(" in ", methodIndex);
+              // Find the separation between method name and file name:
+              methodNameIndex += METHOD_NAME_PREFIX.Length;
+              int fileNameIndex = stackTraceLine.IndexOf(FILE_NAME_PREFIX, methodNameIndex);
               if (fileNameIndex > 0)
               {
-                stackTraceLineMessage.MethodName = stackTraceLine.Substring(methodIndex, fileNameIndex - methodIndex);
+                stackTraceLineMessage.MethodName = stackTraceLine.Substring(methodNameIndex, fileNameIndex - methodNameIndex);
 
-                fileNameIndex += 4;
-                int lineNumberIndex = stackTraceLine.IndexOf(":line ", fileNameIndex);
+                // Find the separation between file name and line number:
+                fileNameIndex += FILE_NAME_PREFIX.Length;
+                int lineNumberIndex = stackTraceLine.IndexOf(LINE_NUMBER_PREFIX, fileNameIndex);
                 if (lineNumberIndex > 0)
                 {
                   stackTraceLineMessage.FileName = stackTraceLine.Substring(fileNameIndex, lineNumberIndex - fileNameIndex);
 
-                  lineNumberIndex += 6;
+                  // Parse the line number:
+                  lineNumberIndex += LINE_NUMBER_PREFIX.Length;
                   string lineNumberStr = stackTraceLine.Substring(lineNumberIndex);
                   int lineNumber;
                   if (int.TryParse(lineNumberStr, out lineNumber))
@@ -179,12 +188,14 @@ namespace Raygun4UWP
                 }
                 else
                 {
+                  // In this case, the frame does not have a line number:
                   stackTraceLineMessage.FileName = stackTraceLine.Substring(fileNameIndex);
                 }
               }
               else
               {
-                stackTraceLineMessage.MethodName = stackTraceLine.Substring(methodIndex);
+                // In this case, the frame only has method and class names:
+                stackTraceLineMessage.MethodName = stackTraceLine.Substring(methodNameIndex);
               }
             }
           }
