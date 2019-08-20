@@ -22,23 +22,34 @@ namespace Raygun4UWP
 
     public static RaygunErrorInfo Build(Exception exception)
     {
+      Dictionary<IntPtr, RaygunImageInfo> images = new Dictionary<IntPtr, RaygunImageInfo>();
+
+      RaygunErrorInfo errorInfo = BuildErrorInfo(exception, images);
+
+      if (images.Count > 0)
+      {
+        errorInfo.Images = images.Values.Where(i => i != null).ToArray();
+      }
+
+      return errorInfo;
+    }
+
+    private static RaygunErrorInfo BuildErrorInfo(Exception exception, Dictionary<IntPtr, RaygunImageInfo> images)
+    {
       RaygunErrorInfo message = new RaygunErrorInfo();
 
       var exceptionType = exception.GetType();
       
       message.Message = exception.Message;
       message.ClassName = FormatTypeName(exceptionType, true);
-
-      // TODO: this should only be on the top error info, not the inner errors
-      Dictionary<IntPtr, RaygunImageInfo> images = new Dictionary<IntPtr, RaygunImageInfo>();
-
+      
       try
       {
         message.StackTrace = BuildStackTrace(exception);
       }
       catch (Exception e)
       {
-        Debug.WriteLine(string.Format($"Failed to get managed stack trace information: {e.Message}"));
+        Debug.WriteLine($"Failed to get managed stack trace information: {e.Message}");
       }
 
       try
@@ -47,7 +58,7 @@ namespace Raygun4UWP
       }
       catch (Exception e)
       {
-        Debug.WriteLine(string.Format($"Failed to get native stack trace information: {e.Message}"));
+        Debug.WriteLine($"Failed to get native stack trace information: {e.Message}");
       }
 
       message.Data = exception.Data;
@@ -59,20 +70,15 @@ namespace Raygun4UWP
         int index = 0;
         foreach (Exception e in ae.InnerExceptions)
         {
-          message.InnerErrors[index] = Build(e);
+          message.InnerErrors[index] = BuildErrorInfo(e, images);
           index++;
         }
       }
       else if (exception.InnerException != null)
       {
-        message.InnerError = Build(exception.InnerException);
+        message.InnerError = BuildErrorInfo(exception.InnerException, images);
       }
-
-      if (images.Count > 0)
-      {
-        message.Images = images.Values.Where(i => i != null).ToArray();
-      }
-
+      
       return message;
     }
 
