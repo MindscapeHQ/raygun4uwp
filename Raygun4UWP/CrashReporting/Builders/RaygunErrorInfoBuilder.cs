@@ -230,7 +230,17 @@ namespace Raygun4UWP
           var line = new RaygunNativeStackTraceFrame
           {
             IP = nativeIP.ToInt64(),
-            ImageBase = nativeImageBase.ToInt64()
+            ImageBase = nativeImageBase.ToInt64(),
+            Raw = frame.ToString()
+          };
+
+          lines.Add(line);
+        }
+        else
+        {
+          var line = new RaygunNativeStackTraceFrame
+          {
+            Raw = frame.ToString()
           };
 
           lines.Add(line);
