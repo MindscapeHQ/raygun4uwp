@@ -41,16 +41,16 @@ namespace Raygun4UWP
 
     private static RaygunErrorInfo BuildErrorInfo(Exception exception, Dictionary<IntPtr, RaygunImageInfo> images)
     {
-      RaygunErrorInfo message = new RaygunErrorInfo();
+      RaygunErrorInfo errorInfo = new RaygunErrorInfo();
 
       var exceptionType = exception.GetType();
 
-      message.Message = exception.Message;
-      message.ClassName = FormatTypeName(exceptionType, true);
+      errorInfo.Message = exception.Message;
+      errorInfo.ClassName = FormatTypeName(exceptionType, true);
 
       try
       {
-        message.StackTrace = BuildStackTrace(exception);
+        errorInfo.StackTrace = BuildStackTrace(exception);
       }
       catch (Exception e)
       {
@@ -59,32 +59,32 @@ namespace Raygun4UWP
 
       try
       {
-        message.NativeStackTrace = BuildNativeStackTrace(images, exception);
+        errorInfo.NativeStackTrace = BuildNativeStackTrace(images, exception);
       }
       catch (Exception e)
       {
         Debug.WriteLine($"Failed to get native stack trace information: {e.Message}");
       }
 
-      message.Data = exception.Data;
+      errorInfo.Data = exception.Data;
 
       AggregateException ae = exception as AggregateException;
       if (ae?.InnerExceptions != null)
       {
-        message.InnerErrors = new RaygunErrorInfo[ae.InnerExceptions.Count];
+        errorInfo.InnerErrors = new RaygunErrorInfo[ae.InnerExceptions.Count];
         int index = 0;
         foreach (Exception e in ae.InnerExceptions)
         {
-          message.InnerErrors[index] = BuildErrorInfo(e, images);
+          errorInfo.InnerErrors[index] = BuildErrorInfo(e, images);
           index++;
         }
       }
       else if (exception.InnerException != null)
       {
-        message.InnerError = BuildErrorInfo(exception.InnerException, images);
+        errorInfo.InnerError = BuildErrorInfo(exception.InnerException, images);
       }
 
-      return message;
+      return errorInfo;
     }
 
     private static string FormatTypeName(Type type, bool fullName)
@@ -127,7 +127,7 @@ namespace Raygun4UWP
             stackTraceLine = stackTraceLine.Substring(CLASS_NAME_PREFIX.Length);
           }
 
-          RaygunStackTraceFrame stackTraceLineMessage = new RaygunStackTraceFrame
+          RaygunStackTraceFrame stackTraceFrame = new RaygunStackTraceFrame
           {
             Raw = stackTraceLine
           };
@@ -161,21 +161,21 @@ namespace Raygun4UWP
             if (methodNameIndex > 0)
             {
               // After finding the separation between class name and method name, the class name is the first part of the string:
-              stackTraceLineMessage.ClassName = stackTraceLine.Substring(0, methodNameIndex);
+              stackTraceFrame.ClassName = stackTraceLine.Substring(0, methodNameIndex);
 
               // Find the separation between method name and file name:
               methodNameIndex += METHOD_NAME_PREFIX.Length;
               int fileNameIndex = stackTraceLine.IndexOf(FILE_NAME_PREFIX, methodNameIndex);
               if (fileNameIndex > 0)
               {
-                stackTraceLineMessage.MethodName = stackTraceLine.Substring(methodNameIndex, fileNameIndex - methodNameIndex);
+                stackTraceFrame.MethodName = stackTraceLine.Substring(methodNameIndex, fileNameIndex - methodNameIndex);
 
                 // Find the separation between file name and line number:
                 fileNameIndex += FILE_NAME_PREFIX.Length;
                 int lineNumberIndex = stackTraceLine.IndexOf(LINE_NUMBER_PREFIX, fileNameIndex);
                 if (lineNumberIndex > 0)
                 {
-                  stackTraceLineMessage.FileName = stackTraceLine.Substring(fileNameIndex, lineNumberIndex - fileNameIndex);
+                  stackTraceFrame.FileName = stackTraceLine.Substring(fileNameIndex, lineNumberIndex - fileNameIndex);
 
                   // Parse the line number:
                   lineNumberIndex += LINE_NUMBER_PREFIX.Length;
@@ -183,24 +183,24 @@ namespace Raygun4UWP
                   int lineNumber;
                   if (int.TryParse(lineNumberStr, out lineNumber))
                   {
-                    stackTraceLineMessage.LineNumber = lineNumber;
+                    stackTraceFrame.LineNumber = lineNumber;
                   }
                 }
                 else
                 {
                   // In this case, the frame does not have a line number:
-                  stackTraceLineMessage.FileName = stackTraceLine.Substring(fileNameIndex);
+                  stackTraceFrame.FileName = stackTraceLine.Substring(fileNameIndex);
                 }
               }
               else
               {
                 // In this case, the frame only has method and class names:
-                stackTraceLineMessage.MethodName = stackTraceLine.Substring(methodNameIndex);
+                stackTraceFrame.MethodName = stackTraceLine.Substring(methodNameIndex);
               }
             }
           }
 
-          lines.Add(stackTraceLineMessage);
+          lines.Add(stackTraceFrame);
         }
       }
 

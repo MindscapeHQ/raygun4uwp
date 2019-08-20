@@ -11,52 +11,52 @@ namespace Raygun4UWP
   {
     public static RaygunEnvironmentInfo Build()
     {
-      RaygunEnvironmentInfo message = new RaygunEnvironmentInfo();
+      RaygunEnvironmentInfo environmentInfo = new RaygunEnvironmentInfo();
 
       try
       {
         if (Window.Current != null)
         {
-          message.WindowBoundsWidth = Window.Current.Bounds.Width;
-          message.WindowBoundsHeight = Window.Current.Bounds.Height;
+          environmentInfo.WindowBoundsWidth = Window.Current.Bounds.Width;
+          environmentInfo.WindowBoundsHeight = Window.Current.Bounds.Height;
 
           var sensor = Windows.Devices.Sensors.SimpleOrientationSensor.GetDefault();
 
           if (sensor != null)
           {
-            message.CurrentOrientation = sensor.GetCurrentOrientation().ToString();
+            environmentInfo.CurrentOrientation = sensor.GetCurrentOrientation().ToString();
           }
         }
       }
       catch (Exception ex)
       {
-        Debug.WriteLine("Error retrieving screen info: {0}", ex.Message);
+        Debug.WriteLine($"Error retrieving screen info: {ex.Message}");
       }
 
       try
       {
         DateTime now = DateTime.Now;
-        message.UtcOffset = TimeZoneInfo.Local.GetUtcOffset(now).TotalHours;
-        message.Locale = CultureInfo.CurrentCulture.DisplayName;
+        environmentInfo.UtcOffset = TimeZoneInfo.Local.GetUtcOffset(now).TotalHours;
+        environmentInfo.Locale = CultureInfo.CurrentCulture.DisplayName;
       }
       catch (Exception ex)
       {
-        Debug.WriteLine("Error retrieving time and locale: {0}", ex.Message);
+        Debug.WriteLine($"Error retrieving time and locale: {ex.Message}");
       }
 
       try
       {
         var deviceInfo = new EasClientDeviceInformation();
-        message.DeviceManufacturer = deviceInfo.SystemManufacturer;
-        message.DeviceName = deviceInfo.SystemProductName;
-        message.OSVersion = GetOSVersion() ?? deviceInfo.OperatingSystem;
+        environmentInfo.DeviceManufacturer = deviceInfo.SystemManufacturer;
+        environmentInfo.DeviceName = deviceInfo.SystemProductName;
+        environmentInfo.OSVersion = GetOSVersion() ?? deviceInfo.OperatingSystem;
       }
       catch (Exception ex)
       {
-        Debug.WriteLine("Error retrieving device info: {0}", ex.Message);
+        Debug.WriteLine($"Error retrieving device info: {ex.Message}");
       }
 
-      return message;
+      return environmentInfo;
     }
 
     private static string GetOSVersion()
