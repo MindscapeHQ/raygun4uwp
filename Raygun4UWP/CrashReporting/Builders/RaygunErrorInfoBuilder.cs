@@ -50,20 +50,23 @@ namespace Raygun4UWP
 
       try
       {
-        errorInfo.StackTrace = BuildStackTrace(exception);
-      }
-      catch (Exception e)
-      {
-        Debug.WriteLine($"Failed to get managed stack trace information: {e.Message}");
-      }
-
-      try
-      {
-        errorInfo.NativeStackTrace = BuildNativeStackTrace(images, exception);
+        errorInfo.StackTrace = BuildNativeStackTrace(images, exception);
       }
       catch (Exception e)
       {
         Debug.WriteLine($"Failed to get native stack trace information: {e.Message}");
+      }
+
+      if (errorInfo.StackTrace == null)
+      {
+        try
+        {
+          errorInfo.StackTrace = BuildStackTrace(exception);
+        }
+        catch (Exception e)
+        {
+          Debug.WriteLine($"Failed to get managed stack trace information: {e.Message}");
+        }
       }
 
       errorInfo.Data = exception.Data;
@@ -132,73 +135,7 @@ namespace Raygun4UWP
             Raw = stackTraceLine
           };
 
-          // Find the separation between class name and method name:
-          int methodNameIndex = stackTraceLine.IndexOf("(");
-          if (methodNameIndex > 0)
-          {
-            if (stackTraceLine[methodNameIndex - 1] == '>')
-            {
-              // The method has generic parameters, so we need to do a little more work to find the separation between class and method names
-
-              methodNameIndex -= 2; // start before the angle bracket we just found
-              int angleBracketPairing = 1;
-              while (methodNameIndex > 0 && angleBracketPairing != 0)
-              {
-                char c = stackTraceLine[methodNameIndex];
-                if (c == '>')
-                {
-                  angleBracketPairing++;
-                }
-                else if (c == '<')
-                {
-                  angleBracketPairing--;
-                }
-                methodNameIndex--;
-              }
-            }
-
-            methodNameIndex = stackTraceLine.LastIndexOf(METHOD_NAME_PREFIX, methodNameIndex);
-            if (methodNameIndex > 0)
-            {
-              // After finding the separation between class name and method name, the class name is the first part of the string:
-              stackTraceFrame.ClassName = stackTraceLine.Substring(0, methodNameIndex);
-
-              // Find the separation between method name and file name:
-              methodNameIndex += METHOD_NAME_PREFIX.Length;
-              int fileNameIndex = stackTraceLine.IndexOf(FILE_NAME_PREFIX, methodNameIndex);
-              if (fileNameIndex > 0)
-              {
-                stackTraceFrame.MethodName = stackTraceLine.Substring(methodNameIndex, fileNameIndex - methodNameIndex);
-
-                // Find the separation between file name and line number:
-                fileNameIndex += FILE_NAME_PREFIX.Length;
-                int lineNumberIndex = stackTraceLine.IndexOf(LINE_NUMBER_PREFIX, fileNameIndex);
-                if (lineNumberIndex > 0)
-                {
-                  stackTraceFrame.FileName = stackTraceLine.Substring(fileNameIndex, lineNumberIndex - fileNameIndex);
-
-                  // Parse the line number:
-                  lineNumberIndex += LINE_NUMBER_PREFIX.Length;
-                  string lineNumberStr = stackTraceLine.Substring(lineNumberIndex);
-                  int lineNumber;
-                  if (int.TryParse(lineNumberStr, out lineNumber))
-                  {
-                    stackTraceFrame.LineNumber = lineNumber;
-                  }
-                }
-                else
-                {
-                  // In this case, the frame does not have a line number:
-                  stackTraceFrame.FileName = stackTraceLine.Substring(fileNameIndex);
-                }
-              }
-              else
-              {
-                // In this case, the frame only has method and class names:
-                stackTraceFrame.MethodName = stackTraceLine.Substring(methodNameIndex);
-              }
-            }
-          }
+          ParseRawStackTraceLine(stackTraceFrame);
 
           lines.Add(stackTraceFrame);
         }
@@ -207,9 +144,86 @@ namespace Raygun4UWP
       return lines.Count == 0 ? null : lines.ToArray();
     }
 
-    private static RaygunNativeStackTraceFrame[] BuildNativeStackTrace(Dictionary<IntPtr, RaygunImageInfo> images, Exception exception)
+    private static void ParseRawStackTraceLine(RaygunStackTraceFrame stackTraceFrame)
     {
-      var lines = new List<RaygunNativeStackTraceFrame>();
+      if (!string.IsNullOrWhiteSpace(stackTraceFrame.Raw))
+      {
+        string stackTraceLine = stackTraceFrame.Raw;
+
+        // Find the separation between class name and method name:
+        int methodNameIndex = stackTraceLine.IndexOf("(");
+        if (methodNameIndex > 0)
+        {
+          if (stackTraceLine[methodNameIndex - 1] == '>')
+          {
+            // The method has generic parameters, so we need to do a little more work to find the separation between class and method names
+
+            methodNameIndex -= 2; // start before the angle bracket we just found
+            int angleBracketPairing = 1;
+            while (methodNameIndex > 0 && angleBracketPairing != 0)
+            {
+              char c = stackTraceLine[methodNameIndex];
+              if (c == '>')
+              {
+                angleBracketPairing++;
+              }
+              else if (c == '<')
+              {
+                angleBracketPairing--;
+              }
+
+              methodNameIndex--;
+            }
+          }
+
+          methodNameIndex = stackTraceLine.LastIndexOf(METHOD_NAME_PREFIX, methodNameIndex);
+          if (methodNameIndex > 0)
+          {
+            // After finding the separation between class name and method name, the class name is the first part of the string:
+            stackTraceFrame.ClassName = stackTraceLine.Substring(0, methodNameIndex);
+
+            // Find the separation between method name and file name:
+            methodNameIndex += METHOD_NAME_PREFIX.Length;
+            int fileNameIndex = stackTraceLine.IndexOf(FILE_NAME_PREFIX, methodNameIndex);
+            if (fileNameIndex > 0)
+            {
+              stackTraceFrame.MethodName = stackTraceLine.Substring(methodNameIndex, fileNameIndex - methodNameIndex);
+
+              // Find the separation between file name and line number:
+              fileNameIndex += FILE_NAME_PREFIX.Length;
+              int lineNumberIndex = stackTraceLine.IndexOf(LINE_NUMBER_PREFIX, fileNameIndex);
+              if (lineNumberIndex > 0)
+              {
+                stackTraceFrame.FileName = stackTraceLine.Substring(fileNameIndex, lineNumberIndex - fileNameIndex);
+
+                // Parse the line number:
+                lineNumberIndex += LINE_NUMBER_PREFIX.Length;
+                string lineNumberStr = stackTraceLine.Substring(lineNumberIndex);
+                int lineNumber;
+                if (int.TryParse(lineNumberStr, out lineNumber))
+                {
+                  stackTraceFrame.LineNumber = lineNumber;
+                }
+              }
+              else
+              {
+                // In this case, the frame does not have a line number:
+                stackTraceFrame.FileName = stackTraceLine.Substring(fileNameIndex);
+              }
+            }
+            else
+            {
+              // In this case, the frame only has method and class names:
+              stackTraceFrame.MethodName = stackTraceLine.Substring(methodNameIndex);
+            }
+          }
+        }
+      }
+    }
+
+    private static RaygunStackTraceFrame[] BuildNativeStackTrace(Dictionary<IntPtr, RaygunImageInfo> images, Exception exception)
+    {
+      var lines = new List<RaygunStackTraceFrame>();
 
       var stackTrace = new StackTrace(exception, true);
       var frames = stackTrace.GetFrames();
@@ -227,21 +241,14 @@ namespace Raygun4UWP
             images[nativeImageBase] = imageInfo;
           }
 
-          var line = new RaygunNativeStackTraceFrame
+          var line = new RaygunStackTraceFrame
           {
             IP = nativeIP.ToInt64(),
             ImageBase = nativeImageBase.ToInt64(),
             Raw = frame.ToString()
           };
 
-          lines.Add(line);
-        }
-        else
-        {
-          var line = new RaygunNativeStackTraceFrame
-          {
-            Raw = frame.ToString()
-          };
+          ParseRawStackTraceLine(line);
 
           lines.Add(line);
         }

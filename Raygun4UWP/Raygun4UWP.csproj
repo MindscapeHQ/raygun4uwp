@@ -127,7 +127,6 @@
     <Compile Include="CrashReporting\PayloadModels\RaygunImageDebugInfo.cs" />
     <Compile Include="CrashReporting\PayloadModels\RaygunEnvironmentInfo.cs" />
     <Compile Include="CrashReporting\PayloadModels\RaygunErrorInfo.cs" />
-    <Compile Include="CrashReporting\PayloadModels\RaygunNativeStackTraceFrame.cs" />
     <Compile Include="CrashReporting\PayloadModels\RaygunStackTraceFrame.cs" />
     <Compile Include="CrashReporting\PayloadModels\RaygunUserInfo.cs" />
     <Compile Include="CrashReporting\PayloadModels\RaygunImageInfo.cs" />

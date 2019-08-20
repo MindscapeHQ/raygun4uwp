@@ -16,8 +16,6 @@ namespace Raygun4UWP
 
     public RaygunStackTraceFrame[] StackTrace { get; set; }
 
-    public RaygunNativeStackTraceFrame[] NativeStackTrace { get; set; }
-
     public RaygunImageInfo[] Images { get; set; }
   }
 }
