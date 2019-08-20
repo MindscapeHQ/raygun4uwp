@@ -10,6 +10,8 @@
 
     public string CurrentOrientation { get; set; }
 
+    public string Architecture { get; set; }
+
     public string DeviceManufacturer { get; set; }
 
     public string DeviceName { get; set; }

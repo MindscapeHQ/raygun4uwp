@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Globalization;
 using System.Reflection;
+using Windows.ApplicationModel;
 using Windows.Security.ExchangeActiveSyncProvisioning;
 using Windows.UI.Xaml;
 
@@ -54,6 +55,16 @@ namespace Raygun4UWP
       catch (Exception ex)
       {
         Debug.WriteLine($"Error retrieving device info: {ex.Message}");
+      }
+
+      try
+      {
+        Package package = Package.Current;
+        environmentInfo.Architecture = package.Id.Architecture.ToString();
+      }
+      catch (Exception ex)
+      {
+        Debug.WriteLine($"Error retrieving package architecture: {ex.Message}");
       }
 
       return environmentInfo;
