@@ -39,10 +39,10 @@ namespace Raygun4UWP
       RaygunErrorInfo message = new RaygunErrorInfo();
 
       var exceptionType = exception.GetType();
-      
+
       message.Message = exception.Message;
       message.ClassName = FormatTypeName(exceptionType, true);
-      
+
       try
       {
         message.StackTrace = BuildStackTrace(exception);
@@ -78,7 +78,7 @@ namespace Raygun4UWP
       {
         message.InnerError = BuildErrorInfo(exception.InnerException, images);
       }
-      
+
       return message;
     }
 
@@ -98,6 +98,7 @@ namespace Raygun4UWP
       {
         stringBuilder.Append(FormatTypeName(t, false)).Append(",");
       }
+
       stringBuilder.Remove(stringBuilder.Length - 1, 1);
       stringBuilder.Append(">");
 
@@ -149,7 +150,7 @@ namespace Raygun4UWP
     private static RaygunNativeStackTraceFrame[] BuildNativeStackTrace(Dictionary<IntPtr, RaygunImageInfo> images, Exception exception)
     {
       var lines = new List<RaygunNativeStackTraceFrame>();
-      
+
       var stackTrace = new StackTrace(exception, true);
       var frames = stackTrace.GetFrames();
 
@@ -159,19 +160,19 @@ namespace Raygun4UWP
         {
           IntPtr nativeIP = frame.GetNativeIP();
           IntPtr nativeImageBase = frame.GetNativeImageBase();
-          
+
           if (!images.ContainsKey(nativeImageBase))
           {
             RaygunImageInfo imageInfo = ReadImage(nativeImageBase);
             images[nativeImageBase] = imageInfo;
           }
-          
+
           var line = new RaygunNativeStackTraceFrame
           {
             IP = nativeIP.ToInt64(),
             ImageBase = nativeImageBase.ToInt64()
           };
-          
+
           lines.Add(line);
         }
       }
@@ -197,8 +198,7 @@ namespace Raygun4UWP
       //     ...
       //     Debug (8 bytes, position 144/160 relative to optional header)
       //     ...
-      
-      // All offset values are relative to the nativeImageBase
+
       int signatureOffset = CopyInt32(nativeImageBase + SIGNATURE_OFFSET_OFFSET);
 
       short sizeOfOptionalHeader = CopyInt16(nativeImageBase + signatureOffset + SIGNATURE_SIZE + 16);
@@ -206,8 +206,8 @@ namespace Raygun4UWP
       int optionalHeaderOffset = signatureOffset + SIGNATURE_SIZE + COFF_FILE_HEADER_SIZE;
 
       short magic = CopyInt16(nativeImageBase + optionalHeaderOffset);
-      
-      int debugDataDirectoryOffset = optionalHeaderOffset + (magic == (short)PEMagic.PE32 ? DEBUG_DATA_DIRECTORY_OFFSET_32 : DEBUG_DATA_DIRECTORY_OFFSET_64);
+
+      int debugDataDirectoryOffset = optionalHeaderOffset + (magic == (short) PEMagic.PE32 ? DEBUG_DATA_DIRECTORY_OFFSET_32 : DEBUG_DATA_DIRECTORY_OFFSET_64);
 
       if (debugDataDirectoryOffset < optionalHeaderOffset + sizeOfOptionalHeader)
       {
@@ -241,15 +241,13 @@ namespace Raygun4UWP
       {
         int debugSize = CopyInt32(nativeImageBase + rva + 4);
 
-        int debugDirectoryCount = debugSize / DEBUG_DIRECTORY_SIZE;
-
-        return ReadDebugDirectories(nativeImageBase, debugVirtualAddress, debugDirectoryCount);
+        return ReadDebugDirectories(nativeImageBase, debugVirtualAddress, debugSize);
       }
 
       return null;
     }
 
-    private static List<RaygunImageDebugInfo> ReadDebugDirectories(IntPtr nativeImageBase, int debugDirectoriesAddress, int debugDirectoryCount)
+    private static List<RaygunImageDebugInfo> ReadDebugDirectories(IntPtr nativeImageBase, int rva, int size)
     {
       // Debug directories:
       // -------------------
@@ -266,13 +264,15 @@ namespace Raygun4UWP
 
       List<RaygunImageDebugInfo> debugInfo = new List<RaygunImageDebugInfo>();
 
+      int debugDirectoryCount = size / DEBUG_DIRECTORY_SIZE;
+
       for (int i = 0; i < debugDirectoryCount; i++)
       {
-        int debugDirectoryAddress = debugDirectoriesAddress + (i * DEBUG_DIRECTORY_SIZE);
+        int debugDirectoryAddress = rva + (i * DEBUG_DIRECTORY_SIZE);
 
         int type = CopyInt32(nativeImageBase + debugDirectoryAddress + 12);
 
-        if (type == (int)DebugDirectoryEntryType.CodeView)
+        if (type == (int) DebugDirectoryEntryType.CodeView)
         {
           int sizeOfData = CopyInt32(nativeImageBase + debugDirectoryAddress + 16);
 
@@ -289,7 +289,7 @@ namespace Raygun4UWP
       return debugInfo;
     }
 
-    private static RaygunImageDebugInfo ReadDebugInformation(IntPtr nativeImageBase, int address, int size)
+    private static RaygunImageDebugInfo ReadDebugInformation(IntPtr nativeImageBase, int rva, int size)
     {
       // Debug information:
       // -------------------
@@ -298,12 +298,12 @@ namespace Raygun4UWP
       // +20    dword     a value which is incremented each time the executable and its associated pdb file is remade by the linker 
       // +24    string    zero terminated UTF8 PDB path and file name
 
-      int debugSignature = CopyInt32(nativeImageBase + address);
+      int debugSignature = CopyInt32(nativeImageBase + rva);
 
       if (debugSignature == RSDS_SIGNATURE)
       {
         byte[] debugGuidArray = new byte[16];
-        Marshal.Copy(nativeImageBase + address + 4, debugGuidArray, 0, 16);
+        Marshal.Copy(nativeImageBase + rva + 4, debugGuidArray, 0, 16);
         Guid debugGuid = new Guid(debugGuidArray);
 
         // We subtract an extra 1 here to discard the zero terminator
@@ -311,7 +311,7 @@ namespace Raygun4UWP
         if (fileNameSize > 0)
         {
           byte[] fileNameArray = new byte[fileNameSize];
-          Marshal.Copy(nativeImageBase + address + 24, fileNameArray, 0, fileNameSize);
+          Marshal.Copy(nativeImageBase + rva + 24, fileNameArray, 0, fileNameSize);
 
           string pdbFileName = Encoding.UTF8.GetString(fileNameArray, 0, fileNameArray.Length);
 
