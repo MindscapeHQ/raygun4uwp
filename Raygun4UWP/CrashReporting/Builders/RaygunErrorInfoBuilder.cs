@@ -30,7 +30,7 @@ namespace Raygun4UWP
       message.ClassName = FormatTypeName(exceptionType, true);
 
       // TODO: this should only be on the top error info, not the inner errors
-      List<RaygunImageInfo> images = new List<RaygunImageInfo>();
+      Dictionary<IntPtr, RaygunImageInfo> images = new Dictionary<IntPtr, RaygunImageInfo>();
 
       try
       {
@@ -70,7 +70,7 @@ namespace Raygun4UWP
 
       if (images.Count > 0)
       {
-        message.Images = images.ToArray();
+        message.Images = images.Values.Where(i => i != null).ToArray();
       }
 
       return message;
@@ -140,7 +140,7 @@ namespace Raygun4UWP
       return lines.Count == 0 ? null : lines.ToArray();
     }
 
-    private static RaygunNativeStackTraceFrame[] BuildNativeStackTrace(List<RaygunImageInfo> images, Exception exception)
+    private static RaygunNativeStackTraceFrame[] BuildNativeStackTrace(Dictionary<IntPtr, RaygunImageInfo> images, Exception exception)
     {
       var lines = new List<RaygunNativeStackTraceFrame>();
       
@@ -153,22 +153,17 @@ namespace Raygun4UWP
         {
           IntPtr nativeIP = frame.GetNativeIP();
           IntPtr nativeImageBase = frame.GetNativeImageBase();
-
-          long nativeImageBaseLong = nativeImageBase.ToInt64();
           
-          if (images.All(i => i.BaseAddress != nativeImageBaseLong))
+          if (!images.ContainsKey(nativeImageBase))
           {
             RaygunImageInfo imageInfo = ReadImage(nativeImageBase);
-            if (imageInfo != null)
-            {
-              images.Add(imageInfo);
-            }
+            images[nativeImageBase] = imageInfo;
           }
           
           var line = new RaygunNativeStackTraceFrame
           {
             IP = nativeIP.ToInt64(),
-            ImageBase = nativeImageBaseLong
+            ImageBase = nativeImageBase.ToInt64()
           };
           
           lines.Add(line);
