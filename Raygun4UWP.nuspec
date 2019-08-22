@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+  <metadata minClientVersion="2.8.3">
+    <id>Raygun4UWP</id>
+    <title>Raygun4UWP</title>
+    <version>0.1.0</version>
+    <releaseNotes>
+    </releaseNotes>
+    <authors>Raygun</authors>
+    <copyright>Copyright 2019</copyright>
+    <iconUrl>https://app.raygun.com/Content/Images/nuget-icon.png</iconUrl>
+    <licenseUrl>https://raw.github.com/MindscapeHQ/raygun4uwp/master/LICENSE</licenseUrl>
+    <projectUrl>https://github.com/MindscapeHQ/raygun4uwp</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Raygun provider for Universal Windows (UWP) applications</description>
+    <summary>Raygun provider for Universal Windows (UWP) applications</summary>
+  <dependencies>
+    <group>
+      <dependency id="Newtonsoft.Json" version="12.0.2" />
+    </group>
+  </dependencies>
+  </metadata>
+  <files>
+    <!-- Any CPU -->
+	<file src="Raygun4UWP\bin\Release\Raygun4UWP.dll" target="lib\uap10.0"/>
+	<file src="Raygun4UWP\bin\Release\Raygun4UWP.pdb" target="lib\uap10.0"/>
+	<file src="Raygun4UWP\bin\Release\Raygun4UWP.pri" target="lib\uap10.0"/>
+    
+    <!-- x64 -->
+	<file src="Raygun4UWP\bin\x64\Release\Raygun4UWP.dll" target="runtimes\win10-x64\lib\uap10.0"/>
+	<file src="Raygun4UWP\bin\x64\Release\Raygun4UWP.pdb" target="runtimes\win10-x64\lib\uap10.0"/>
+	<file src="Raygun4UWP\bin\x64\Release\Raygun4UWP.pri" target="runtimes\win10-x64\lib\uap10.0"/>
+
+    <!-- x86 -->
+	<file src="Raygun4UWP\bin\x86\Release\Raygun4UWP.dll" target="runtimes\win10-x86\lib\uap10.0"/>
+	<file src="Raygun4UWP\bin\x86\Release\Raygun4UWP.pdb" target="runtimes\win10-x86\lib\uap10.0"/>
+	<file src="Raygun4UWP\bin\x86\Release\Raygun4UWP.pri" target="runtimes\win10-x86\lib\uap10.0"/>
+	
+	<!-- ARM -->
+    <file src="Raygun4UWP\bin\ARM\Release\Raygun4UWP.dll" target="runtimes\win10-arm\lib\uap10.0"/>
+	<file src="Raygun4UWP\bin\ARM\Release\Raygun4UWP.pdb" target="runtimes\win10-arm\lib\uap10.0"/>
+	<file src="Raygun4UWP\bin\ARM\Release\Raygun4UWP.pri" target="runtimes\win10-arm\lib\uap10.0"/>
+	
+	<file src="readme.txt" />
+  </files>
+</package>

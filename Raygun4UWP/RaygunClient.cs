@@ -150,7 +150,7 @@ namespace Raygun4UWP
       SendOrSaveCrashReport(null, raygunCrashReport).Wait(3000);
     }
 
-    private void Application_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+    private void Application_UnhandledException(object sender, Windows.UI.Xaml.UnhandledExceptionEventArgs e)
     {
       Send(e.Exception);
     }

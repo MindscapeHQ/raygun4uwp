@@ -4,6 +4,10 @@ using System.Reflection;
 
 namespace Raygun4UWP
 {
+  /// <summary>
+  /// Holds options that affect the behaviour of the Raygun4UWP provider.
+  /// These can be changed at any time.
+  /// </summary>
   public class RaygunSettings
   {
     private const string DEFAULT_CR_API_ENDPOINT = "https://api.raygun.com/entries";
