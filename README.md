@@ -12,7 +12,7 @@ Getting Started
 
 The most basic setup of Raygun4UWP can be achieved with a single line of code. Place this within the App.xaml.cs constructor.
 
-RaygunClient.Initialize("YOUR_APP_API_KEY").EnableCrashReporting();
+```RaygunClient.Initialize("YOUR_APP_API_KEY").EnableCrashReporting();```
 
 This will cause the RaygunClient to automatically listen to all unhandled exceptions that you application experiences,
 and send them off to your Raygun account. Additionally, an instance of the RaygunClient will be set on the static
