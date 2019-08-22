@@ -12,7 +12,9 @@ Getting Started
 
 The most basic setup of Raygun4UWP can be achieved with a single line of code. Place this within the App.xaml.cs constructor.
 
-```RaygunClient.Initialize("YOUR_APP_API_KEY").EnableCrashReporting();```
+```csharp
+RaygunClient.Initialize("YOUR_APP_API_KEY").EnableCrashReporting();
+```
 
 This will cause the RaygunClient to automatically listen to all unhandled exceptions that you application experiences,
 and send them off to your Raygun account. Additionally, an instance of the RaygunClient will be set on the static
@@ -37,7 +39,7 @@ This repository includes a build.bat script for anyone who wants to build and pa
 NuGet provider is required to continue
 PowerShellGet requires NuGet provider version '2.8.5.201' or newer to interact with NuGet-based repositories. The NuGet
  provider must be available in 'C:\Program Files\PackageManagement\ProviderAssemblies' or
-'C:\Users\Quant\AppData\Local\PackageManagement\ProviderAssemblies'. You can also install the NuGet provider by running
+'C:\Users\You\AppData\Local\PackageManagement\ProviderAssemblies'. You can also install the NuGet provider by running
  'Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force'. Do you want PowerShellGet to install and
 import the NuGet provider now?
 [Y] Yes  [N] No  [S] Suspend  [?] Help (default is "Y"):
