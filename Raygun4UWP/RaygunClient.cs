@@ -245,15 +245,15 @@ namespace Raygun4UWP
         {
           var tempFolder = ApplicationData.Current.TemporaryFolder;
 
-          var raygunFolder = await tempFolder.CreateFolderAsync(OFFLINE_DATA_FOLDER, CreationCollisionOption.OpenIfExists).AsTask().ConfigureAwait(false);
+          var raygunFolder = await tempFolder.CreateFolderAsync(OFFLINE_DATA_FOLDER, CreationCollisionOption.OpenIfExists);
 
-          var files = await raygunFolder.GetFilesAsync().AsTask().ConfigureAwait(false);
+          var files = await raygunFolder.GetFilesAsync();
 
           foreach (var file in files)
           {
             try
             {
-              string text = await FileIO.ReadTextAsync(file).AsTask().ConfigureAwait(false);
+              string text = await FileIO.ReadTextAsync(file);
               await SendCrashReport(text, false).ConfigureAwait(false);
             }
             catch (Exception ex)
@@ -261,10 +261,10 @@ namespace Raygun4UWP
               Debug.WriteLine($"Failed to read stored crash report. The crash report will be deleted: {ex.Message}");
             }
 
-            await file.DeleteAsync().AsTask().ConfigureAwait(false);
+            await file.DeleteAsync();
           }
 
-          await raygunFolder.DeleteAsync().AsTask().ConfigureAwait(false);
+          await raygunFolder.DeleteAsync();
         }
         catch (Exception ex)
         {
@@ -295,7 +295,7 @@ namespace Raygun4UWP
       {
         var tempFolder = ApplicationData.Current.TemporaryFolder;
 
-        var raygunFolder = await tempFolder.CreateFolderAsync(OFFLINE_DATA_FOLDER, CreationCollisionOption.OpenIfExists).AsTask().ConfigureAwait(false);
+        var raygunFolder = await tempFolder.CreateFolderAsync(OFFLINE_DATA_FOLDER, CreationCollisionOption.OpenIfExists);
 
         int number = 1;
         while (true)
@@ -304,7 +304,7 @@ namespace Raygun4UWP
 
           try
           {
-            await raygunFolder.GetFileAsync($"RaygunCrashReport{number}.txt").AsTask().ConfigureAwait(false);
+            await raygunFolder.GetFileAsync($"RaygunCrashReport{number}.txt");
             exists = true;
           }
           catch (FileNotFoundException)
@@ -319,9 +319,9 @@ namespace Raygun4UWP
             StorageFile nextFile = null;
             try
             {
-              nextFile = await raygunFolder.GetFileAsync(nextFileName).AsTask().ConfigureAwait(false);
+              nextFile = await raygunFolder.GetFileAsync(nextFileName);
 
-              await nextFile.DeleteAsync().AsTask().ConfigureAwait(false);
+              await nextFile.DeleteAsync();
             }
             catch (FileNotFoundException)
             {
@@ -337,8 +337,8 @@ namespace Raygun4UWP
         {
           try
           {
-            StorageFile firstFile = await raygunFolder.GetFileAsync("RaygunCrashReport1.txt").AsTask().ConfigureAwait(false);
-            await firstFile.DeleteAsync().AsTask().ConfigureAwait(false);
+            StorageFile firstFile = await raygunFolder.GetFileAsync("RaygunCrashReport1.txt");
+            await firstFile.DeleteAsync();
           }
           catch (FileNotFoundException)
           {
@@ -346,8 +346,8 @@ namespace Raygun4UWP
         }
 
         string fileName = $"RaygunCrashReport{number}.txt";
-        var file = await raygunFolder.CreateFileAsync(fileName).AsTask().ConfigureAwait(false);
-        await FileIO.WriteTextAsync(file, payload).AsTask().ConfigureAwait(false);
+        var file = await raygunFolder.CreateFileAsync(fileName);
+        await FileIO.WriteTextAsync(file, payload);
 
         Debug.WriteLine($"Saved crash report: {OFFLINE_DATA_FOLDER}\\{fileName}");
       }
