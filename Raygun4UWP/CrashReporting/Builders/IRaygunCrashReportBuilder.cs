@@ -24,6 +24,6 @@ namespace Raygun4UWP
 
     IRaygunCrashReportBuilder SetUserInfo(RaygunUserInfo user);
 
-    IRaygunCrashReportBuilder SetOccurredOn(DateTime? currentTime);
+    IRaygunCrashReportBuilder SetOccurredOn(DateTime currentTime);
   }
 }

@@ -366,7 +366,7 @@ namespace Raygun4UWP
       }
     }
 
-    private RaygunCrashReport BuildCrashReport(Exception exception, IList<string> tags, IDictionary userCustomData, DateTime? currentTime)
+    private RaygunCrashReport BuildCrashReport(Exception exception, IList<string> tags, IDictionary userCustomData, DateTime currentTime)
     {
       string version = string.IsNullOrWhiteSpace(ApplicationVersion) ? GetPackageVersion() : ApplicationVersion;
 

@@ -77,12 +77,9 @@ namespace Raygun4UWP
       return this;
     }
 
-    public IRaygunCrashReportBuilder SetOccurredOn(DateTime? occurredOn)
+    public IRaygunCrashReportBuilder SetOccurredOn(DateTime occurredOn)
     {
-      if (occurredOn != null)
-      {
-        _raygunCrashReport.OccurredOn = occurredOn.Value;
-      }
+      _raygunCrashReport.OccurredOn = occurredOn;
       return this;
     }
   }
