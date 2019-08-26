@@ -16,7 +16,7 @@
     <summary>Raygun provider for Universal Windows (UWP) applications</summary>
   <dependencies>
     <group>
-      <dependency id="Newtonsoft.Json" version="12.0.2" />
+      <dependency id="Newtonsoft.Json" version="4.5.7" />
     </group>
   </dependencies>
   </metadata>
