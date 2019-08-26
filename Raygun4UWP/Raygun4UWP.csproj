@@ -137,6 +137,12 @@
     <Compile Include="CrashReporting\Builders\RaygunCrashReportBuilder.cs" />
     <Compile Include="CrashReporting\RaygunSendingCrashReportEventArgs.cs" />
     <Compile Include="RaygunSettings.cs" />
+    <Compile Include="RUM\PayloadModels\RaygunRUMEventInfo.cs" />
+    <Compile Include="RUM\PayloadModels\RaygunRUMEventTimingType.cs" />
+    <Compile Include="RUM\PayloadModels\RaygunRUMEventType.cs" />
+    <Compile Include="RUM\PayloadModels\RaygunRUMMessage.cs" />
+    <Compile Include="RUM\PayloadModels\RaygunRUMTimingData.cs" />
+    <Compile Include="RUM\PayloadModels\RaygunRUMTimingInfo.cs" />
     <EmbeddedResource Include="Properties\Raygun4UWP.rd.xml" />
   </ItemGroup>
   <ItemGroup>
