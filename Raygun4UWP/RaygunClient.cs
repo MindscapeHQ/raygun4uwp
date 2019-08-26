@@ -155,17 +155,6 @@ namespace Raygun4UWP
       Send(e.Exception);
     }
 
-    private bool InternetAvailable()
-    {
-      IEnumerable<ConnectionProfile> connections = NetworkInformation.GetConnectionProfiles();
-      var internetProfile = NetworkInformation.GetInternetConnectionProfile();
-
-      bool internetAvailable = connections != null && connections.Any(c =>
-                                 c.GetNetworkConnectivityLevel() == NetworkConnectivityLevel.InternetAccess) ||
-                               (internetProfile != null && internetProfile.GetNetworkConnectivityLevel() == NetworkConnectivityLevel.InternetAccess);
-      return internetAvailable;
-    }
-
     private async Task SendOrSaveCrashReport(Exception originalException, RaygunCrashReport raygunCrashReport)
     {
       if (ValidateApiKey())
@@ -183,7 +172,7 @@ namespace Raygun4UWP
 
             string payload = JsonConvert.SerializeObject(raygunCrashReport, settings);
 
-            if (InternetAvailable())
+            if (HttpService.IsInternetAvailable)
             {
               await SendCrashReport(payload, true);
             }
@@ -249,7 +238,7 @@ namespace Raygun4UWP
 
     private async Task SendStoredCrashReports()
     {
-      if (InternetAvailable())
+      if (HttpService.IsInternetAvailable)
       {
         try
         {
