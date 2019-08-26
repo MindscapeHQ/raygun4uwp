@@ -175,6 +175,7 @@ namespace Raygun4UWP
             if (HttpService.IsInternetAvailable)
             {
               await SendCrashReport(payload, true);
+              BeginSendStoredCrashReports();
             }
             else
             {
