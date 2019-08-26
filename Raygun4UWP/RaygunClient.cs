@@ -278,15 +278,9 @@ namespace Raygun4UWP
 
     private async Task SendCrashReport(string payload, bool saveOnFail)
     {
-      var httpClient = new HttpClient();
-
-      var request = new HttpRequestMessage(HttpMethod.Post, Settings.CrashReportingApiEndpoint);
-      request.Headers.Add("X-ApiKey", Settings.ApiKey);
-      request.Content = new HttpStringContent(payload, Windows.Storage.Streams.UnicodeEncoding.Utf8, "application/json");
-
       try
       {
-        await httpClient.SendRequestAsync(request, HttpCompletionOption.ResponseHeadersRead).AsTask().ConfigureAwait(false);
+        await HttpService.SendRequestAsync(Settings.CrashReportingApiEndpoint, Settings.ApiKey, payload);
       }
       catch (Exception ex)
       {

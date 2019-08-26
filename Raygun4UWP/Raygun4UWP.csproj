@@ -120,6 +120,7 @@
     <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Common\HttpService.cs" />
     <Compile Include="CrashReporting\Builders\RaygunEnvironmentInfoBuilder.cs" />
     <Compile Include="CrashReporting\Builders\RaygunErrorInfoBuilder.cs" />
     <Compile Include="CrashReporting\Builders\IRaygunCrashReportBuilder.cs" />
