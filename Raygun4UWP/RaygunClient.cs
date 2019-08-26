@@ -251,8 +251,15 @@ namespace Raygun4UWP
 
           foreach (var file in files)
           {
-            string text = await FileIO.ReadTextAsync(file).AsTask().ConfigureAwait(false);
-            await SendCrashReport(text, false).ConfigureAwait(false);
+            try
+            {
+              string text = await FileIO.ReadTextAsync(file).AsTask().ConfigureAwait(false);
+              await SendCrashReport(text, false).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+              Debug.WriteLine($"Failed to read stored crash report. The crash report will be deleted: {ex.Message}");
+            }
 
             await file.DeleteAsync().AsTask().ConfigureAwait(false);
           }
