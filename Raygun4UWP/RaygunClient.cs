@@ -27,8 +27,6 @@ namespace Raygun4UWP
     public RaygunClient(string apiKey)
     {
       Settings = new RaygunSettings(apiKey);
-
-      BeginSendStoredCrashReports();
     }
 
     /// <summary>
@@ -89,6 +87,8 @@ namespace Raygun4UWP
       {
         Application.Current.UnhandledException += Application_UnhandledException;
       }
+
+      BeginSendStoredCrashReports();
 
       return Current;
     }
