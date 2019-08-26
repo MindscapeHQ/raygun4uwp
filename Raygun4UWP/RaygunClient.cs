@@ -81,6 +81,7 @@ namespace Raygun4UWP
     /// <summary>
     /// Causes Raygun to listen to and send all unhandled exceptions.
     /// </summary>
+    /// <returns>The current RaygunClient instance.</returns>
     public RaygunClient EnableCrashReporting()
     {
       DisableCrashReporting();
@@ -102,6 +103,35 @@ namespace Raygun4UWP
       {
         Application.Current.UnhandledException -= Application_UnhandledException;
       }
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <returns>The current RaygunClient instance.</returns>
+    public RaygunClient EnableRealUserMonitoring()
+    {
+      DisableRealUserMonitoring();
+
+      if (Application.Current != null)
+      {
+        Application.Current.Resuming += CurrentOnResuming;
+      }
+
+      return Current;
+    }
+
+    private void CurrentOnResuming(object sender, object e)
+    {
+      
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public void DisableRealUserMonitoring()
+    {
+
     }
 
     /// <summary>
