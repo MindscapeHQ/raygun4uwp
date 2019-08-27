@@ -4,8 +4,6 @@ namespace Raygun4UWP
 {
   public enum RaygunRUMEventType
   {
-    None = 0,
-
     [EnumMember(Value = "session_start")]
     SessionStart,
 

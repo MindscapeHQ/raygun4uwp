@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Windows.ApplicationModel;
 using Windows.Security.ExchangeActiveSyncProvisioning;
 using Windows.Storage;
 using Windows.UI.Xaml;
@@ -114,14 +115,20 @@ namespace Raygun4UWP
       if (Application.Current != null)
       {
         Application.Current.Resuming += CurrentOnResuming;
+        Application.Current.Suspending += CurrentOnSuspending;
       }
 
       return Current;
     }
 
+    private void CurrentOnSuspending(object sender, SuspendingEventArgs e)
+    {
+      return;
+    }
+
     private void CurrentOnResuming(object sender, object e)
     {
-      
+      RaygunRUMService.SendSessionStartEvent(Settings.RealUserMonitoringApiEndpoint, Settings.ApiKey);
     }
 
     /// <summary>
@@ -178,7 +185,23 @@ namespace Raygun4UWP
       SendOrSaveCrashReportAsync(null, raygunCrashReport).Wait(3000);
     }
 
-    private void Application_UnhandledException(object sender, Windows.UI.Xaml.UnhandledExceptionEventArgs e)
+    public void SendSessionStartEvent()
+    {
+      RaygunRUMService.SendSessionStartEvent(Settings.RealUserMonitoringApiEndpoint, Settings.ApiKey);
+    }
+
+    /// <summary>
+    /// Sends a RUM performance timing event.
+    /// </summary>
+    /// <param name="type">Type of event being recorded.</param>
+    /// <param name="name">Name of the event (e.g. a page name or a request URL).</param>
+    /// <param name="milliseconds">The duration of the event.</param>
+    public void SendSessionTimingEvent(RaygunRUMEventTimingType type, string name, long milliseconds)
+    {
+      RaygunRUMService.SendSessionTimingEvent(Settings.RealUserMonitoringApiEndpoint, Settings.ApiKey, type, name, milliseconds);
+    }
+
+    private void Application_UnhandledException(object sender, UnhandledExceptionEventArgs e)
     {
       Send(e.Exception);
     }
