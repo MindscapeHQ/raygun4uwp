@@ -1,16 +1,14 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Windows.Networking.Connectivity;
 using Windows.Security.ExchangeActiveSyncProvisioning;
 using Windows.Storage;
 using Windows.UI.Xaml;
-using Windows.Web.Http;
-using Newtonsoft.Json;
 
 namespace Raygun4UWP
 {
@@ -27,8 +25,6 @@ namespace Raygun4UWP
     public RaygunClient(string apiKey)
     {
       Settings = new RaygunSettings(apiKey);
-
-      BeginSendStoredCrashReports();
     }
 
     /// <summary>
@@ -90,6 +86,8 @@ namespace Raygun4UWP
       {
         Application.Current.UnhandledException += Application_UnhandledException;
       }
+
+      SendStoredCrashReportsAsync();
 
       return Current;
     }
@@ -156,7 +154,7 @@ namespace Raygun4UWP
     /// set to a valid DateTime and as much of the Details property as is available.</param>
     public async Task SendAsync(RaygunCrashReport raygunCrashReport)
     {
-      await SendOrSaveCrashReport(null, raygunCrashReport);
+      await SendOrSaveCrashReportAsync(null, raygunCrashReport);
     }
 
     /// <summary>
@@ -177,7 +175,7 @@ namespace Raygun4UWP
     /// set to a valid DateTime and as much of the Details property as is available.</param>
     public void Send(RaygunCrashReport raygunCrashReport)
     {
-      SendOrSaveCrashReport(null, raygunCrashReport).Wait(3000);
+      SendOrSaveCrashReportAsync(null, raygunCrashReport).Wait(3000);
     }
 
     private void Application_UnhandledException(object sender, Windows.UI.Xaml.UnhandledExceptionEventArgs e)
@@ -185,18 +183,7 @@ namespace Raygun4UWP
       Send(e.Exception);
     }
 
-    private bool InternetAvailable()
-    {
-      IEnumerable<ConnectionProfile> connections = NetworkInformation.GetConnectionProfiles();
-      var internetProfile = NetworkInformation.GetInternetConnectionProfile();
-
-      bool internetAvailable = connections != null && connections.Any(c =>
-                                 c.GetNetworkConnectivityLevel() == NetworkConnectivityLevel.InternetAccess) ||
-                               (internetProfile != null && internetProfile.GetNetworkConnectivityLevel() == NetworkConnectivityLevel.InternetAccess);
-      return internetAvailable;
-    }
-
-    private async Task SendOrSaveCrashReport(Exception originalException, RaygunCrashReport raygunCrashReport)
+    private async Task SendOrSaveCrashReportAsync(Exception originalException, RaygunCrashReport raygunCrashReport)
     {
       if (ValidateApiKey())
       {
@@ -213,13 +200,14 @@ namespace Raygun4UWP
 
             string payload = JsonConvert.SerializeObject(raygunCrashReport, settings);
 
-            if (InternetAvailable())
+            if (HttpService.IsInternetAvailable)
             {
-              await SendCrashReport(payload, true);
+              await SendCrashReportAsync(payload, true);
+              SendStoredCrashReportsAsync();
             }
             else
             {
-              await SaveCrashReport(payload);
+              await SaveCrashReportAsync(payload);
             }
           }
           catch (Exception ex)
@@ -272,14 +260,9 @@ namespace Raygun4UWP
       return result;
     }
 
-    private async void BeginSendStoredCrashReports()
+    private async void SendStoredCrashReportsAsync()
     {
-      await SendStoredCrashReports();
-    }
-
-    private async Task SendStoredCrashReports()
-    {
-      if (InternetAvailable())
+      if (HttpService.IsInternetAvailable)
       {
         try
         {
@@ -291,8 +274,15 @@ namespace Raygun4UWP
 
           foreach (var file in files)
           {
-            string text = await FileIO.ReadTextAsync(file).AsTask().ConfigureAwait(false);
-            await SendCrashReport(text, false).ConfigureAwait(false);
+            try
+            {
+              string text = await FileIO.ReadTextAsync(file).AsTask().ConfigureAwait(false);
+              await SendCrashReportAsync(text, false);
+            }
+            catch (Exception ex)
+            {
+              Debug.WriteLine($"Failed to read stored crash report. The crash report will be deleted: {ex.Message}");
+            }
 
             await file.DeleteAsync().AsTask().ConfigureAwait(false);
           }
@@ -306,29 +296,23 @@ namespace Raygun4UWP
       }
     }
 
-    private async Task SendCrashReport(string payload, bool saveOnFail)
+    private async Task SendCrashReportAsync(string payload, bool saveOnFail)
     {
-      var httpClient = new HttpClient();
-
-      var request = new HttpRequestMessage(HttpMethod.Post, Settings.CrashReportingApiEndpoint);
-      request.Headers.Add("X-ApiKey", Settings.ApiKey);
-      request.Content = new HttpStringContent(payload, Windows.Storage.Streams.UnicodeEncoding.Utf8, "application/json");
-
       try
       {
-        await httpClient.SendRequestAsync(request, HttpCompletionOption.ResponseHeadersRead).AsTask().ConfigureAwait(false);
+        await HttpService.SendRequestAsync(Settings.CrashReportingApiEndpoint, Settings.ApiKey, payload);
       }
       catch (Exception ex)
       {
         Debug.WriteLine($"Error Logging Exception to Raygun: {ex.Message}");
         if (saveOnFail)
         {
-          SaveCrashReport(payload).Wait(3000);
+          SaveCrashReportAsync(payload).Wait(3000);
         }
       }
     }
 
-    private async Task SaveCrashReport(string payload)
+    private static async Task SaveCrashReportAsync(string payload)
     {
       try
       {
@@ -355,10 +339,9 @@ namespace Raygun4UWP
           {
             string nextFileName = $"RaygunCrashReport{number + 1}.txt";
 
-            StorageFile nextFile = null;
             try
             {
-              nextFile = await raygunFolder.GetFileAsync(nextFileName).AsTask().ConfigureAwait(false);
+              StorageFile nextFile = await raygunFolder.GetFileAsync(nextFileName).AsTask().ConfigureAwait(false);
 
               await nextFile.DeleteAsync().AsTask().ConfigureAwait(false);
             }
@@ -396,7 +379,7 @@ namespace Raygun4UWP
       }
     }
 
-    private RaygunCrashReport BuildCrashReport(Exception exception, IList<string> tags, IDictionary userCustomData, DateTime? currentTime)
+    private RaygunCrashReport BuildCrashReport(Exception exception, IList<string> tags, IDictionary userCustomData, DateTime currentTime)
     {
       string version = string.IsNullOrWhiteSpace(ApplicationVersion) ? GetPackageVersion() : ApplicationVersion;
 
@@ -415,7 +398,7 @@ namespace Raygun4UWP
       return crashReport;
     }
 
-    private string GetPackageVersion()
+    private static string GetPackageVersion()
     {
       string version = null;
 
@@ -437,7 +420,7 @@ namespace Raygun4UWP
       var currentTime = DateTime.UtcNow;
       foreach (Exception e in StripWrapperExceptions(exception))
       {
-        SendOrSaveCrashReport(e, BuildCrashReport(e, tags, userCustomData, currentTime)).Wait(3000);
+        SendOrSaveCrashReportAsync(e, BuildCrashReport(e, tags, userCustomData, currentTime)).Wait(3000);
       }
     }
 
@@ -447,7 +430,7 @@ namespace Raygun4UWP
       var currentTime = DateTime.UtcNow;
       foreach (Exception e in StripWrapperExceptions(exception))
       {
-        tasks.Add(SendOrSaveCrashReport(e, BuildCrashReport(e, tags, userCustomData, currentTime)));
+        tasks.Add(SendOrSaveCrashReportAsync(e, BuildCrashReport(e, tags, userCustomData, currentTime)));
       }
 
       await Task.WhenAll(tasks);
