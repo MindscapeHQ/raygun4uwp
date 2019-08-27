@@ -1,0 +1,20 @@
+#############
+## Raygun4UWP
+#############
+
+packages/
+release/
+
+#################
+## Visual Studio
+#################
+
+.vs/
+obj/
+bin/
+
+# User-specific files
+*.suo
+*.user
+*.sln.docstates
+*.ide
