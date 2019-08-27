@@ -215,13 +215,7 @@ namespace Raygun4UWP
         {
           try
           {
-            JsonSerializerSettings settings = new JsonSerializerSettings
-            {
-              NullValueHandling = NullValueHandling.Ignore,
-              Formatting = Formatting.None
-            };
-
-            string payload = JsonConvert.SerializeObject(raygunCrashReport, settings);
+            string payload = JsonConvert.SerializeObject(raygunCrashReport, HttpService.SERIALIZATION_SETTINGS);
 
             if (HttpService.IsInternetAvailable)
             {

@@ -17,15 +17,8 @@ namespace Raygun4UWP
       _sessionId = Guid.NewGuid().ToString();
 
       RaygunRUMMessage sessionStartMessage = BuildSessionEventMessage(RaygunRUMEventType.SessionStart, _sessionId);
-
-      JsonSerializerSettings settings = new JsonSerializerSettings
-      {
-        NullValueHandling = NullValueHandling.Ignore,
-        Formatting = Formatting.None,
-        Converters = new JsonConverter[] {new StringEnumConverter()}
-      };
-
-      string payload = JsonConvert.SerializeObject(sessionStartMessage, settings);
+      
+      string payload = JsonConvert.SerializeObject(sessionStartMessage, HttpService.SERIALIZATION_SETTINGS);
 
       HttpService.SendRequestAsync(endpoint, apiKey, payload);
     }
@@ -46,19 +39,12 @@ namespace Raygun4UWP
           }
         }
       };
-
-      JsonSerializerSettings settings = new JsonSerializerSettings
-      {
-        NullValueHandling = NullValueHandling.Ignore,
-        Formatting = Formatting.None,
-        Converters = new JsonConverter[] { new StringEnumConverter() }
-      };
-
-      string dataPayload = JsonConvert.SerializeObject(data, settings);
+      
+      string dataPayload = JsonConvert.SerializeObject(data, HttpService.SERIALIZATION_SETTINGS);
 
       sessionTimingEvent.EventData[0].Data = dataPayload;
 
-      string payload = JsonConvert.SerializeObject(sessionTimingEvent, settings);
+      string payload = JsonConvert.SerializeObject(sessionTimingEvent, HttpService.SERIALIZATION_SETTINGS);
 
       HttpService.SendRequestAsync(endpoint, apiKey, payload);
     }
