@@ -1,18 +1,42 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
+﻿using Newtonsoft.Json;
+using System;
+using Windows.ApplicationModel;
+using Windows.UI.Xaml;
 
 namespace Raygun4UWP
 {
-  internal static class RaygunRUMService
+  internal class RaygunRUMService
   {
-    private static string _sessionId;
+    private readonly RaygunSettings _settings;
 
-    public static void SendSessionStartEvent(Uri endpoint, string apiKey)
+    private string _sessionId;
+
+    public RaygunRUMService(RaygunSettings settings)
+    {
+      _settings = settings;
+    }
+
+    public void Enable()
+    {
+      Disable(); // This is to avoid attaching the same event handlers multiple times
+
+      if (Application.Current != null)
+      {
+        Application.Current.Resuming += CurrentOnResuming;
+        Application.Current.Suspending += CurrentOnSuspending;
+      }
+    }
+
+    public void Disable()
+    {
+      if (Application.Current != null)
+      {
+        Application.Current.Resuming -= CurrentOnResuming;
+        Application.Current.Suspending -= CurrentOnSuspending;
+      }
+    }
+
+    public void SendSessionStartEvent()
     {
       _sessionId = Guid.NewGuid().ToString();
 
@@ -20,10 +44,10 @@ namespace Raygun4UWP
       
       string payload = JsonConvert.SerializeObject(sessionStartMessage, HttpService.SERIALIZATION_SETTINGS);
 
-      HttpService.SendRequestAsync(endpoint, apiKey, payload);
+      HttpService.SendRequestAsync(_settings.RealUserMonitoringApiEndpoint, _settings.ApiKey, payload);
     }
 
-    public static void SendSessionTimingEvent(Uri endpoint, string apiKey, RaygunRUMEventTimingType type, string name, long milliseconds)
+    public void SendSessionTimingEvent(RaygunRUMEventTimingType type, string name, long milliseconds)
     {
       RaygunRUMMessage sessionTimingEvent = BuildSessionEventMessage(RaygunRUMEventType.Timing, _sessionId);
 
@@ -46,7 +70,7 @@ namespace Raygun4UWP
 
       string payload = JsonConvert.SerializeObject(sessionTimingEvent, HttpService.SERIALIZATION_SETTINGS);
 
-      HttpService.SendRequestAsync(endpoint, apiKey, payload);
+      HttpService.SendRequestAsync(_settings.RealUserMonitoringApiEndpoint, _settings.ApiKey, payload);
     }
 
     private static RaygunRUMMessage BuildSessionEventMessage(RaygunRUMEventType eventType, string sessionId)
@@ -65,6 +89,16 @@ namespace Raygun4UWP
       };
 
       return message;
+    }
+
+    private void CurrentOnSuspending(object sender, SuspendingEventArgs e)
+    {
+      return;
+    }
+
+    private void CurrentOnResuming(object sender, object e)
+    {
+      SendSessionStartEvent();
     }
   }
 }

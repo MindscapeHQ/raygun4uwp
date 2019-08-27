@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Windows.ApplicationModel;
 using Windows.Security.ExchangeActiveSyncProvisioning;
@@ -17,6 +18,7 @@ namespace Raygun4UWP
   {
     private const string OFFLINE_DATA_FOLDER = "Raygun4UWPOfflineCrashReports";
 
+    private RaygunRUMService _rumSerive;
     private bool _handlingRecursiveErrorSending;
 
     /// <summary>
@@ -26,6 +28,7 @@ namespace Raygun4UWP
     public RaygunClient(string apiKey)
     {
       Settings = new RaygunSettings(apiKey);
+      _rumSerive = new RaygunRUMService(Settings);
     }
 
     /// <summary>
@@ -76,7 +79,7 @@ namespace Raygun4UWP
     public event EventHandler<RaygunSendingCrashReportEventArgs> SendingCrashReport;
 
     /// <summary>
-    /// Causes Raygun to listen to and send all unhandled exceptions.
+    /// Causes this RaygunClient to listen to and send all unhandled exceptions.
     /// </summary>
     /// <returns>The current RaygunClient instance.</returns>
     public RaygunClient EnableCrashReporting()
@@ -94,7 +97,7 @@ namespace Raygun4UWP
     }
 
     /// <summary>
-    /// Stops Raygun from listening to unhandled exceptions.
+    /// Stops this RaygunClient from listening to unhandled exceptions.
     /// </summary>
     public void DisableCrashReporting()
     {
@@ -105,38 +108,22 @@ namespace Raygun4UWP
     }
 
     /// <summary>
-    /// 
+    /// Causes this RaygunClient to listen to the application Resuming and Suspending events to automatically post session start/end events to Raygun.
     /// </summary>
     /// <returns>The current RaygunClient instance.</returns>
     public RaygunClient EnableRealUserMonitoring()
     {
-      DisableRealUserMonitoring();
-
-      if (Application.Current != null)
-      {
-        Application.Current.Resuming += CurrentOnResuming;
-        Application.Current.Suspending += CurrentOnSuspending;
-      }
+      _rumSerive.Enable();
 
       return Current;
     }
 
-    private void CurrentOnSuspending(object sender, SuspendingEventArgs e)
-    {
-      return;
-    }
-
-    private void CurrentOnResuming(object sender, object e)
-    {
-      RaygunRUMService.SendSessionStartEvent(Settings.RealUserMonitoringApiEndpoint, Settings.ApiKey);
-    }
-
     /// <summary>
-    /// 
+    /// Stops this RaygunClient from listening to application Resuming and Suspending events.
     /// </summary>
     public void DisableRealUserMonitoring()
     {
-
+      _rumSerive.Disable();
     }
 
     /// <summary>
@@ -185,9 +172,13 @@ namespace Raygun4UWP
       SendOrSaveCrashReportAsync(null, raygunCrashReport).Wait(3000);
     }
 
+    /// <summary>
+    /// Sends a RUM session start event with a newly generated session id.
+    /// If there is currently an open session, it will be ended.
+    /// </summary>
     public void SendSessionStartEvent()
     {
-      RaygunRUMService.SendSessionStartEvent(Settings.RealUserMonitoringApiEndpoint, Settings.ApiKey);
+      _rumSerive.SendSessionStartEvent();
     }
 
     /// <summary>
@@ -198,7 +189,7 @@ namespace Raygun4UWP
     /// <param name="milliseconds">The duration of the event.</param>
     public void SendSessionTimingEvent(RaygunRUMEventTimingType type, string name, long milliseconds)
     {
-      RaygunRUMService.SendSessionTimingEvent(Settings.RealUserMonitoringApiEndpoint, Settings.ApiKey, type, name, milliseconds);
+      _rumSerive.SendSessionTimingEvent(type, name, milliseconds);
     }
 
     private void Application_UnhandledException(object sender, UnhandledExceptionEventArgs e)
