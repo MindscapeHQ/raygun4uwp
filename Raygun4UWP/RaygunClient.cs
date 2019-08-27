@@ -16,7 +16,7 @@ namespace Raygun4UWP
   {
     private const string OFFLINE_DATA_FOLDER = "Raygun4UWPOfflineCrashReports";
 
-    private RaygunRUMService _rumSerive;
+    private readonly RaygunRUMService _rumSerive;
     private bool _handlingRecursiveErrorSending;
 
     /// <summary>
@@ -57,9 +57,16 @@ namespace Raygun4UWP
     public RaygunSettings Settings { get; }
 
     /// <summary>
-    /// Gets or sets the user identifier string.
+    /// Gets or sets the user identifier string for the currently logged-in user.
     /// </summary>
-    public string UserIdentifier { get; set; }
+    public string UserIdentifier
+    {
+      get { return UserInfo?.Identifier; }
+      set
+      {
+        UserInfo = new RaygunUserInfo(value);
+      }
+    }
 
     /// <summary>
     /// Gets or sets richer data about the currently logged-in user.
@@ -171,7 +178,7 @@ namespace Raygun4UWP
     }
 
     /// <summary>
-    /// Sends a RUM session start event with a newly generated session id.
+    /// Sends a RUM session start event which will have a newly generated session id.
     /// If there is currently an open session, it will be ended.
     /// </summary>
     public void SendSessionStartEvent()
@@ -398,7 +405,7 @@ namespace Raygun4UWP
         .SetVersion(version)
         .SetTags(tags)
         .SetCustomData(userCustomData)
-        .SetUserInfo(UserInfo ?? (!string.IsNullOrEmpty(UserIdentifier) ? new RaygunUserInfo(UserIdentifier) : null))
+        .SetUserInfo(UserInfo)
         .Build();
 
       return crashReport;
