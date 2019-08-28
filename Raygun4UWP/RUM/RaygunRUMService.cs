@@ -16,6 +16,8 @@ namespace Raygun4UWP
       _settings = settings;
     }
 
+    public RaygunUserInfo DefaultUser { get; set; }
+
     public void Enable()
     {
       Disable(); // This is to avoid attaching the same event handlers multiple times
@@ -73,7 +75,7 @@ namespace Raygun4UWP
       HttpService.SendRequestAsync(_settings.RealUserMonitoringApiEndpoint, _settings.ApiKey, payload);
     }
 
-    private static RaygunRUMMessage BuildSessionEventMessage(RaygunRUMEventType eventType, string sessionId)
+    private RaygunRUMMessage BuildSessionEventMessage(RaygunRUMEventType eventType, string sessionId)
     {
       var message = new RaygunRUMMessage
       {
@@ -83,7 +85,8 @@ namespace Raygun4UWP
           {
             SessionId = sessionId,
             Timestamp = DateTime.UtcNow,
-            Type = eventType
+            Type = eventType,
+            User = DefaultUser
           }
         }
       };
