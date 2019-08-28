@@ -17,6 +17,8 @@ namespace Raygun4UWP
       _settings = settings;
     }
 
+    public string ApplicationVersion { get; set; }
+
     public void Enable()
     {
       Disable(); // This is to avoid attaching the same event handlers multiple times
@@ -97,7 +99,8 @@ namespace Raygun4UWP
             SessionId = sessionId,
             Timestamp = DateTime.UtcNow,
             Type = eventType,
-            User = DefaultUserService.DefaultUser
+            User = DefaultUserService.DefaultUser,
+            Version = string.IsNullOrWhiteSpace(ApplicationVersion) ? EnvironmentService.GetPackageVersion() : ApplicationVersion
           }
         }
       };

@@ -20,6 +20,7 @@ namespace Raygun4UWP
     private readonly RaygunRUMService _rumService;
 
     private bool _handlingRecursiveErrorSending;
+    private string _applicationVersion;
 
     /// <summary>
     /// Creates a new instance of the <see cref="RaygunClient" /> class.
@@ -73,9 +74,18 @@ namespace Raygun4UWP
     public RaygunUserInfo UserInfo { get; set; }
 
     /// <summary>
-    /// Gets or sets a custom application version identifier for all crash reports sent to Raygun.
+    /// Gets or sets a custom application version identifier for all messages sent to Raygun.
+    /// If this is not set, the package version will be used instead.
     /// </summary>
-    public string ApplicationVersion { get; set; }
+    public string ApplicationVersion
+    {
+      get { return _applicationVersion; }
+      set
+      {
+        _applicationVersion = value;
+        _rumService.ApplicationVersion = _applicationVersion;
+      }
+    }
 
     /// <summary>
     /// Raised just before any RaygunCrashReport is sent. This can be used to make final adjustments to the <see cref="RaygunCrashReport"/>, or to cancel the send.
@@ -403,7 +413,7 @@ namespace Raygun4UWP
 
     private RaygunCrashReport BuildCrashReport(Exception exception, IList<string> tags, IDictionary userCustomData, DateTime currentTime)
     {
-      string version = string.IsNullOrWhiteSpace(ApplicationVersion) ? GetPackageVersion() : ApplicationVersion;
+      string version = string.IsNullOrWhiteSpace(ApplicationVersion) ? EnvironmentService.GetPackageVersion() : ApplicationVersion;
 
       var crashReport = RaygunCrashReportBuilder.New
         .SetEnvironmentInfo()
@@ -418,23 +428,6 @@ namespace Raygun4UWP
         .Build();
 
       return crashReport;
-    }
-
-    private static string GetPackageVersion()
-    {
-      string version = null;
-
-      try
-      {
-        var v = Windows.ApplicationModel.Package.Current.Id.Version;
-        version = $"{v.Major}.{v.Minor}.{v.Build}.{v.Revision}";
-      }
-      catch (Exception ex)
-      {
-        Debug.WriteLine($"Failed to get application package version: {ex.Message}");
-      }
-
-      return version;
     }
 
     private void StripAndSend(Exception exception, IList<string> tags, IDictionary userCustomData)
