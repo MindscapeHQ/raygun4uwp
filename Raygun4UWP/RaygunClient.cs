@@ -9,17 +9,16 @@ using System.Threading.Tasks;
 using Windows.Security.ExchangeActiveSyncProvisioning;
 using Windows.Storage;
 using Windows.UI.Xaml;
+using Raygun4UWP.Common;
 
 namespace Raygun4UWP
 {
   public class RaygunClient
   {
     private const string OFFLINE_DATA_FOLDER = "Raygun4UWPOfflineCrashReports";
-    private const string DEFAULT_USER_ID_KEY = "Raygun4UWPDefaultUserId";
 
     private readonly RaygunRUMService _rumService;
 
-    private RaygunUserInfo _defaultUser;
     private bool _handlingRecursiveErrorSending;
 
     /// <summary>
@@ -65,10 +64,7 @@ namespace Raygun4UWP
     public string UserIdentifier
     {
       get { return UserInfo?.Identifier; }
-      set
-      {
-        UserInfo = new RaygunUserInfo(value);
-      }
+      set { UserInfo = new RaygunUserInfo(value); }
     }
 
     /// <summary>
@@ -122,7 +118,6 @@ namespace Raygun4UWP
     public RaygunClient EnableRealUserMonitoring()
     {
       _rumService.Enable();
-      _rumService.DefaultUser = DefaultUser;
 
       return Current;
     }
@@ -187,7 +182,6 @@ namespace Raygun4UWP
     /// </summary>
     public void SendSessionStartEvent()
     {
-      _rumService.DefaultUser = DefaultUser;
       _rumService.SendSessionStartEvent();
     }
 
@@ -199,7 +193,6 @@ namespace Raygun4UWP
     /// <param name="milliseconds">The duration of the event.</param>
     public void SendSessionTimingEvent(RaygunRUMEventTimingType type, string name, long milliseconds)
     {
-      _rumService.DefaultUser = DefaultUser;
       _rumService.SendSessionTimingEvent(type, name, milliseconds);
     }
 
@@ -411,7 +404,7 @@ namespace Raygun4UWP
         .SetVersion(version)
         .SetTags(tags)
         .SetCustomData(userCustomData)
-        .SetUserInfo(UserInfo)
+        .SetUserInfo(UserInfo ?? DefaultUserService.DefaultUser)
         .Build();
 
       return crashReport;
@@ -481,35 +474,6 @@ namespace Raygun4UWP
       else
       {
         yield return exception;
-      }
-    }
-
-    private RaygunUserInfo DefaultUser
-    {
-      get
-      {
-        try
-        {
-          if (_defaultUser == null)
-          {
-            ApplicationData.Current.RoamingSettings.Values.TryGetValue(DEFAULT_USER_ID_KEY, out object defaultUserObj);
-
-            if (!(defaultUserObj is string))
-            {
-              string id = Guid.NewGuid().ToString().Replace("-", string.Empty);
-              ApplicationData.Current.RoamingSettings.Values[DEFAULT_USER_ID_KEY] = id;
-              defaultUserObj = id;
-            }
-
-            _defaultUser = new RaygunUserInfo((string) defaultUserObj) {IsAnonymous = true};
-          }
-        }
-        catch (Exception ex)
-        {
-          Debug.WriteLine($"Failed to get or generate a default user id: {ex.Message}");
-        }
-
-        return _defaultUser;
       }
     }
   }

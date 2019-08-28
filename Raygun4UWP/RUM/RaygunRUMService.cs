@@ -2,6 +2,7 @@
 using System;
 using Windows.ApplicationModel;
 using Windows.UI.Xaml;
+using Raygun4UWP.Common;
 
 namespace Raygun4UWP
 {
@@ -15,8 +16,6 @@ namespace Raygun4UWP
     {
       _settings = settings;
     }
-
-    public RaygunUserInfo DefaultUser { get; set; }
 
     public void Enable()
     {
@@ -86,7 +85,7 @@ namespace Raygun4UWP
             SessionId = sessionId,
             Timestamp = DateTime.UtcNow,
             Type = eventType,
-            User = DefaultUser
+            User = DefaultUserService.DefaultUser
           }
         }
       };
