@@ -48,6 +48,18 @@ namespace Raygun4UWP
       HttpService.SendRequestAsync(_settings.RealUserMonitoringApiEndpoint, _settings.ApiKey, payload);
     }
 
+    public void SendSessionEndEvent()
+    {
+      if (_sessionId != null)
+      {
+        RaygunRUMMessage sessionStartMessage = BuildSessionEventMessage(RaygunRUMEventType.SessionEnd, _sessionId);
+
+        string payload = JsonConvert.SerializeObject(sessionStartMessage, HttpService.SERIALIZATION_SETTINGS);
+
+        HttpService.SendRequestAsync(_settings.RealUserMonitoringApiEndpoint, _settings.ApiKey, payload);
+      }
+    }
+
     public void SendSessionTimingEvent(RaygunRUMEventTimingType type, string name, long milliseconds)
     {
       RaygunRUMMessage sessionTimingEvent = BuildSessionEventMessage(RaygunRUMEventType.Timing, _sessionId);
@@ -95,7 +107,7 @@ namespace Raygun4UWP
 
     private void CurrentOnSuspending(object sender, SuspendingEventArgs e)
     {
-      return;
+      SendSessionEndEvent();
     }
 
     private void CurrentOnResuming(object sender, object e)

@@ -178,7 +178,7 @@ namespace Raygun4UWP
 
     /// <summary>
     /// Sends a RUM session start event which will have a newly generated session id.
-    /// If there is currently an open session, it will be ended.
+    /// If there is already an active session, it will be ended before starting a new one.
     /// </summary>
     public void SendSessionStartEvent()
     {
@@ -187,6 +187,7 @@ namespace Raygun4UWP
 
     /// <summary>
     /// Sends a RUM performance timing event.
+    /// If there isn't currently an active session, a new one will be started.
     /// </summary>
     /// <param name="type">Type of event being recorded.</param>
     /// <param name="name">Name of the event (e.g. a page name or a request URL).</param>
@@ -194,6 +195,15 @@ namespace Raygun4UWP
     public void SendSessionTimingEvent(RaygunRUMEventTimingType type, string name, long milliseconds)
     {
       _rumService.SendSessionTimingEvent(type, name, milliseconds);
+    }
+
+    /// <summary>
+    /// Sends a RUM session end event.
+    /// This will do nothing if there isn't a currently active session.
+    /// </summary>
+    public void SendSessionEndEvent()
+    {
+      _rumService.SendSessionEndEvent();
     }
 
     private void Application_UnhandledException(object sender, UnhandledExceptionEventArgs e)
