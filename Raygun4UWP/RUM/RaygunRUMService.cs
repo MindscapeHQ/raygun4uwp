@@ -2,7 +2,6 @@
 using System;
 using Windows.ApplicationModel;
 using Windows.UI.Xaml;
-using Raygun4UWP.Common;
 
 namespace Raygun4UWP
 {
@@ -100,7 +99,10 @@ namespace Raygun4UWP
             Timestamp = DateTime.UtcNow,
             Type = eventType,
             User = DefaultUserService.DefaultUser,
-            Version = string.IsNullOrWhiteSpace(ApplicationVersion) ? EnvironmentService.GetPackageVersion() : ApplicationVersion
+            Version = string.IsNullOrWhiteSpace(ApplicationVersion) ? EnvironmentService.PackageVersion : ApplicationVersion,
+            Platform = EnvironmentService.DeviceName,
+            OS = EnvironmentService.OperatingSystem,
+            OSVersion = EnvironmentService.OperatingSystemVersion
           }
         }
       };

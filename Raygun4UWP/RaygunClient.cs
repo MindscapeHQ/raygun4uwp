@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Windows.Security.ExchangeActiveSyncProvisioning;
 using Windows.Storage;
 using Windows.UI.Xaml;
-using Raygun4UWP.Common;
 
 namespace Raygun4UWP
 {
@@ -413,7 +412,7 @@ namespace Raygun4UWP
 
     private RaygunCrashReport BuildCrashReport(Exception exception, IList<string> tags, IDictionary userCustomData, DateTime currentTime)
     {
-      string version = string.IsNullOrWhiteSpace(ApplicationVersion) ? EnvironmentService.GetPackageVersion() : ApplicationVersion;
+      string version = string.IsNullOrWhiteSpace(ApplicationVersion) ? EnvironmentService.PackageVersion : ApplicationVersion;
 
       var crashReport = RaygunCrashReportBuilder.New
         .SetEnvironmentInfo()

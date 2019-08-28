@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using Windows.Storage;
 
-namespace Raygun4UWP.Common
+namespace Raygun4UWP
 {
   internal static class DefaultUserService
   {

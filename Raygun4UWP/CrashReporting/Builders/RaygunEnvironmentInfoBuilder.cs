@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Globalization;
-using System.Reflection;
 using Windows.ApplicationModel;
-using Windows.Security.ExchangeActiveSyncProvisioning;
 using Windows.UI.Xaml;
 
 namespace Raygun4UWP
@@ -47,10 +45,10 @@ namespace Raygun4UWP
 
       try
       {
-        var deviceInfo = new EasClientDeviceInformation();
-        environmentInfo.DeviceManufacturer = deviceInfo.SystemManufacturer;
-        environmentInfo.DeviceName = deviceInfo.SystemProductName;
-        environmentInfo.OSVersion = GetOSVersion() ?? deviceInfo.OperatingSystem;
+        environmentInfo.DeviceManufacturer = EnvironmentService.DeviceManufacturer;
+        environmentInfo.DeviceName = EnvironmentService.DeviceName;
+        environmentInfo.OSName = EnvironmentService.OperatingSystem;
+        environmentInfo.OSVersion = EnvironmentService.OperatingSystemVersion;
       }
       catch (Exception ex)
       {
@@ -68,42 +66,6 @@ namespace Raygun4UWP
       }
 
       return environmentInfo;
-    }
-
-    private static string GetOSVersion()
-    {
-      try
-      {
-        var analyticsInfoType = Type.GetType("Windows.System.Profile.AnalyticsInfo, Windows, ContentType=WindowsRuntime");
-        var versionInfoType = Type.GetType("Windows.System.Profile.AnalyticsVersionInfo, Windows, ContentType=WindowsRuntime");
-
-        if (analyticsInfoType == null || versionInfoType == null)
-        {
-          return null;
-        }
-
-        var versionInfoProperty = analyticsInfoType.GetRuntimeProperty("VersionInfo");
-        var versionInfo = versionInfoProperty.GetValue(null);
-        var versionProperty = versionInfoType.GetRuntimeProperty("DeviceFamilyVersion");
-        var familyVersion = versionProperty.GetValue(versionInfo);
-
-        long versionBytes;
-        if (!long.TryParse(familyVersion.ToString(), out versionBytes))
-        {
-          return null;
-        }
-
-        var uapVersion = new Version((ushort)(versionBytes >> 48),
-            (ushort)(versionBytes >> 32),
-            (ushort)(versionBytes >> 16),
-            (ushort)(versionBytes));
-
-        return uapVersion.ToString();
-      }
-      catch
-      {
-        return null;
-      }
     }
   }
 }

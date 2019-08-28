@@ -2,6 +2,8 @@
 {
   public class RaygunEnvironmentInfo
   {
+    public string OSName { get; set; }
+
     public string OSVersion { get; set; }
 
     public double WindowBoundsWidth { get; set; }
