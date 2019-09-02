@@ -66,23 +66,19 @@ namespace Raygun4UWP
       _sessionId = Guid.NewGuid().ToString();
 
       RaygunRUMMessage sessionStartMessage = BuildSessionEventMessage(RaygunRUMEventType.SessionStart, _sessionId);
-      
-      string payload = JsonConvert.SerializeObject(sessionStartMessage, HttpService.SERIALIZATION_SETTINGS);
 
-      await HttpService.SendRequestAsync(_settings.RealUserMonitoringApiEndpoint, _settings.ApiKey, payload);
+      await SendRUMMessageAsync(sessionStartMessage);
     }
 
     public async Task SendSessionEndEventAsync()
     {
       if (_sessionId != null)
       {
-        RaygunRUMMessage sessionStartMessage = BuildSessionEventMessage(RaygunRUMEventType.SessionEnd, _sessionId);
-
-        string payload = JsonConvert.SerializeObject(sessionStartMessage, HttpService.SERIALIZATION_SETTINGS);
-
+        RaygunRUMMessage sessionEndMessage = BuildSessionEventMessage(RaygunRUMEventType.SessionEnd, _sessionId);
+        
         _sessionId = null;
 
-        await HttpService.SendRequestAsync(_settings.RealUserMonitoringApiEndpoint, _settings.ApiKey, payload);
+        await SendRUMMessageAsync(sessionEndMessage);
       }
     }
 
@@ -93,7 +89,7 @@ namespace Raygun4UWP
         await SendSessionStartEventAsync();
       }
 
-      RaygunRUMMessage sessionTimingEvent = BuildSessionEventMessage(RaygunRUMEventType.Timing, _sessionId);
+      RaygunRUMMessage sessionTimingMessage = BuildSessionEventMessage(RaygunRUMEventType.Timing, _sessionId);
 
       var data = new RaygunRUMTimingData[]
       {
@@ -110,11 +106,9 @@ namespace Raygun4UWP
       
       string dataPayload = JsonConvert.SerializeObject(data, HttpService.SERIALIZATION_SETTINGS);
 
-      sessionTimingEvent.EventData[0].Data = dataPayload;
+      sessionTimingMessage.EventData[0].Data = dataPayload;
 
-      string payload = JsonConvert.SerializeObject(sessionTimingEvent, HttpService.SERIALIZATION_SETTINGS);
-
-      await HttpService.SendRequestAsync(_settings.RealUserMonitoringApiEndpoint, _settings.ApiKey, payload);
+      await SendRUMMessageAsync(sessionTimingMessage);
     }
 
     private async void SendSessionEndEventInternalAsync()
@@ -143,6 +137,13 @@ namespace Raygun4UWP
       };
 
       return message;
+    }
+
+    private async Task SendRUMMessageAsync(RaygunRUMMessage message)
+    {
+      string payload = JsonConvert.SerializeObject(message, HttpService.SERIALIZATION_SETTINGS);
+
+      await HttpService.SendRequestAsync(_settings.RealUserMonitoringApiEndpoint, _settings.ApiKey, payload);
     }
 
     private async void CurrentOnSuspending(object sender, SuspendingEventArgs e)
