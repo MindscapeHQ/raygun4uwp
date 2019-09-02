@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using System;
+using System.Threading.Tasks;
 using Windows.ApplicationModel;
 using Windows.UI.Xaml;
 
@@ -32,7 +33,7 @@ namespace Raygun4UWP
 
           if (previousUser != null)
           {
-            SendSessionEndEvent();
+            SendSessionEndEventInternalAsync();
           }
         }
       }
@@ -58,9 +59,9 @@ namespace Raygun4UWP
       }
     }
 
-    public void SendSessionStartEvent()
+    public async Task SendSessionStartEventAsync()
     {
-      SendSessionEndEvent();
+      await SendSessionEndEventAsync();
 
       _sessionId = Guid.NewGuid().ToString();
 
@@ -68,10 +69,10 @@ namespace Raygun4UWP
       
       string payload = JsonConvert.SerializeObject(sessionStartMessage, HttpService.SERIALIZATION_SETTINGS);
 
-      HttpService.SendRequestAsync(_settings.RealUserMonitoringApiEndpoint, _settings.ApiKey, payload);
+      await HttpService.SendRequestAsync(_settings.RealUserMonitoringApiEndpoint, _settings.ApiKey, payload);
     }
 
-    public void SendSessionEndEvent()
+    public async Task SendSessionEndEventAsync()
     {
       if (_sessionId != null)
       {
@@ -81,15 +82,15 @@ namespace Raygun4UWP
 
         _sessionId = null;
 
-        HttpService.SendRequestAsync(_settings.RealUserMonitoringApiEndpoint, _settings.ApiKey, payload);
+        await HttpService.SendRequestAsync(_settings.RealUserMonitoringApiEndpoint, _settings.ApiKey, payload);
       }
     }
 
-    public void SendSessionTimingEvent(RaygunRUMEventTimingType type, string name, long milliseconds)
+    public async Task SendSessionTimingEventAsync(RaygunRUMEventTimingType type, string name, long milliseconds)
     {
       if (_sessionId == null)
       {
-        SendSessionStartEvent();
+        await SendSessionStartEventAsync();
       }
 
       RaygunRUMMessage sessionTimingEvent = BuildSessionEventMessage(RaygunRUMEventType.Timing, _sessionId);
@@ -113,7 +114,12 @@ namespace Raygun4UWP
 
       string payload = JsonConvert.SerializeObject(sessionTimingEvent, HttpService.SERIALIZATION_SETTINGS);
 
-      HttpService.SendRequestAsync(_settings.RealUserMonitoringApiEndpoint, _settings.ApiKey, payload);
+      await HttpService.SendRequestAsync(_settings.RealUserMonitoringApiEndpoint, _settings.ApiKey, payload);
+    }
+
+    private async void SendSessionEndEventInternalAsync()
+    {
+      await SendSessionEndEventAsync();
     }
 
     private RaygunRUMMessage BuildSessionEventMessage(RaygunRUMEventType eventType, string sessionId)
@@ -139,14 +145,14 @@ namespace Raygun4UWP
       return message;
     }
 
-    private void CurrentOnSuspending(object sender, SuspendingEventArgs e)
+    private async void CurrentOnSuspending(object sender, SuspendingEventArgs e)
     {
-      SendSessionEndEvent();
+      await SendSessionEndEventAsync();
     }
 
-    private void CurrentOnResuming(object sender, object e)
+    private async void CurrentOnResuming(object sender, object e)
     {
-      SendSessionStartEvent();
+      await SendSessionStartEventAsync();
     }
   }
 }
