@@ -20,6 +20,7 @@ namespace Raygun4UWP
 
     private bool _handlingRecursiveErrorSending;
     private string _applicationVersion;
+    private RaygunUserInfo _userInfo;
 
     /// <summary>
     /// Creates a new instance of the <see cref="RaygunClient" /> class.
@@ -64,13 +65,21 @@ namespace Raygun4UWP
     public string UserIdentifier
     {
       get { return UserInfo?.Identifier; }
-      set { UserInfo = new RaygunUserInfo(value); }
+      set { UserInfo = string.IsNullOrWhiteSpace(value) ? null : new RaygunUserInfo(value); }
     }
 
     /// <summary>
     /// Gets or sets richer data about the currently logged-in user.
     /// </summary>
-    public RaygunUserInfo UserInfo { get; set; }
+    public RaygunUserInfo UserInfo
+    {
+      get { return _userInfo; }
+      set
+      {
+        _userInfo = value;
+        _rumService.UserInfo = _userInfo;
+      }
+    }
 
     /// <summary>
     /// Gets or sets a custom application version identifier for all messages sent to Raygun.

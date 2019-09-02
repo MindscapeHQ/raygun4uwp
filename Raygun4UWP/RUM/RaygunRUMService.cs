@@ -10,6 +10,7 @@ namespace Raygun4UWP
     private readonly RaygunSettings _settings;
 
     private string _sessionId;
+    private RaygunUserInfo _userInfo;
 
     public RaygunRUMService(RaygunSettings settings)
     {
@@ -17,6 +18,15 @@ namespace Raygun4UWP
     }
 
     public string ApplicationVersion { get; set; }
+
+    public RaygunUserInfo UserInfo
+    {
+      get { return _userInfo; }
+      set
+      {
+        _userInfo = value;
+      }
+    }
 
     public void Enable()
     {
@@ -98,7 +108,7 @@ namespace Raygun4UWP
             SessionId = sessionId,
             Timestamp = DateTime.UtcNow,
             Type = eventType,
-            User = DefaultUserService.DefaultUser,
+            User = UserInfo ?? DefaultUserService.DefaultUser,
             Version = string.IsNullOrWhiteSpace(ApplicationVersion) ? EnvironmentService.PackageVersion : ApplicationVersion,
             Platform = EnvironmentService.DeviceName,
             OS = EnvironmentService.OperatingSystem,
