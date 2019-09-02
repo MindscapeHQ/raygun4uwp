@@ -16,7 +16,7 @@ namespace Raygun4UWP
   {
     private const string OFFLINE_DATA_FOLDER = "Raygun4UWPOfflineCrashReports";
 
-    private readonly RaygunRUMService _rumService;
+    private readonly RUMService _rumService;
 
     private bool _handlingRecursiveErrorSending;
     private string _applicationVersion;
@@ -29,7 +29,7 @@ namespace Raygun4UWP
     public RaygunClient(string apiKey)
     {
       Settings = new RaygunSettings(apiKey);
-      _rumService = new RaygunRUMService(Settings);
+      _rumService = new RUMService(Settings);
     }
 
     /// <summary>

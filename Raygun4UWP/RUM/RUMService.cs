@@ -6,14 +6,14 @@ using Windows.UI.Xaml;
 
 namespace Raygun4UWP
 {
-  internal class RaygunRUMService
+  internal class RUMService
   {
     private readonly RaygunSettings _settings;
 
     private string _sessionId;
     private RaygunUserInfo _userInfo;
 
-    public RaygunRUMService(RaygunSettings settings)
+    public RUMService(RaygunSettings settings)
     {
       _settings = settings;
     }
