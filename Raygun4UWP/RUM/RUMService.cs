@@ -11,6 +11,7 @@ namespace Raygun4UWP
   {
     private readonly RaygunSettings _settings;
 
+    private bool _isEnabled;
     private string _sessionId;
     private RaygunUserInfo _userInfo;
 
@@ -32,7 +33,7 @@ namespace Raygun4UWP
 
           _userInfo = value;
 
-          if (previousUser != null)
+          if (_isEnabled && previousUser != null)
           {
             SendSessionEndEventInternalAsync();
           }
@@ -49,6 +50,8 @@ namespace Raygun4UWP
         Application.Current.Resuming += CurrentOnResuming;
         Application.Current.Suspending += CurrentOnSuspending;
       }
+
+      _isEnabled = true;
     }
 
     public void Disable()
@@ -58,6 +61,8 @@ namespace Raygun4UWP
         Application.Current.Resuming -= CurrentOnResuming;
         Application.Current.Suspending -= CurrentOnSuspending;
       }
+
+      _isEnabled = false;
     }
 
     public async Task SendSessionStartEventAsync()
