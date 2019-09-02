@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Windows.ApplicationModel;
 using Windows.UI.Xaml;
@@ -141,9 +142,23 @@ namespace Raygun4UWP
 
     private async Task SendRUMMessageAsync(RaygunRUMMessage message)
     {
-      string payload = JsonConvert.SerializeObject(message, HttpService.SERIALIZATION_SETTINGS);
+      if (ValidateApiKey())
+      {
+        string payload = JsonConvert.SerializeObject(message, HttpService.SERIALIZATION_SETTINGS);
 
-      await HttpService.SendRequestAsync(_settings.RealUserMonitoringApiEndpoint, _settings.ApiKey, payload);
+        await HttpService.SendRequestAsync(_settings.RealUserMonitoringApiEndpoint, _settings.ApiKey, payload);
+      }
+    }
+
+    private bool ValidateApiKey()
+    {
+      if (string.IsNullOrEmpty(_settings.ApiKey))
+      {
+        Debug.WriteLine("ApiKey has not been provided, RUM event will not be sent");
+        return false;
+      }
+
+      return true;
     }
 
     private async void CurrentOnSuspending(object sender, SuspendingEventArgs e)

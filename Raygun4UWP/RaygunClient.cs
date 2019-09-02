@@ -270,7 +270,7 @@ namespace Raygun4UWP
     {
       if (string.IsNullOrEmpty(Settings.ApiKey))
       {
-        System.Diagnostics.Debug.WriteLine("ApiKey has not been provided, exception will not be logged");
+        Debug.WriteLine("ApiKey has not been provided, exception will not be logged");
         return false;
       }
 
