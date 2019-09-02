@@ -148,6 +148,8 @@ namespace Raygun4UWP
       _rumService.Disable();
     }
 
+    #region Manually send crash reports
+
     /// <summary>
     /// Asynchronously sends a crash report to Raygun for the given <see cref="Exception"/>.
     /// It is best to call this method within a try/catch block.
@@ -194,6 +196,10 @@ namespace Raygun4UWP
       SendOrSaveCrashReportAsync(null, raygunCrashReport).Wait(3000);
     }
 
+    #endregion // Manually send crash reports
+
+    #region Manually send RUM events
+
     /// <summary>
     /// Sends a RUM session start event which will have a newly generated session id.
     /// If there is already an active session, it will be ended before starting a new one.
@@ -223,6 +229,8 @@ namespace Raygun4UWP
     {
       await _rumService.SendSessionEndEventAsync();
     }
+
+    #endregion // Manually send RUM events
 
     private void Application_UnhandledException(object sender, UnhandledExceptionEventArgs e)
     {
