@@ -24,7 +24,17 @@ namespace Raygun4UWP
       get { return _userInfo; }
       set
       {
-        _userInfo = value;
+        if (_userInfo != value)
+        {
+          RaygunUserInfo previousUser = _userInfo;
+
+          _userInfo = value;
+
+          if (previousUser != null)
+          {
+            SendSessionEndEvent();
+          }
+        }
       }
     }
 
@@ -50,6 +60,8 @@ namespace Raygun4UWP
 
     public void SendSessionStartEvent()
     {
+      SendSessionEndEvent();
+
       _sessionId = Guid.NewGuid().ToString();
 
       RaygunRUMMessage sessionStartMessage = BuildSessionEventMessage(RaygunRUMEventType.SessionStart, _sessionId);
@@ -67,12 +79,19 @@ namespace Raygun4UWP
 
         string payload = JsonConvert.SerializeObject(sessionStartMessage, HttpService.SERIALIZATION_SETTINGS);
 
+        _sessionId = null;
+
         HttpService.SendRequestAsync(_settings.RealUserMonitoringApiEndpoint, _settings.ApiKey, payload);
       }
     }
 
     public void SendSessionTimingEvent(RaygunRUMEventTimingType type, string name, long milliseconds)
     {
+      if (_sessionId == null)
+      {
+        SendSessionStartEvent();
+      }
+
       RaygunRUMMessage sessionTimingEvent = BuildSessionEventMessage(RaygunRUMEventType.Timing, _sessionId);
 
       var data = new RaygunRUMTimingData[]
