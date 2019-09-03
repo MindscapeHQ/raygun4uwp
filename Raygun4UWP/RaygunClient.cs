@@ -232,6 +232,43 @@ namespace Raygun4UWP
 
     #endregion // Manually send RUM events
 
+    #region ListenToNavigation attached property
+
+    public static readonly DependencyProperty ListenToNavigationProperty =
+      DependencyProperty.RegisterAttached(
+        "ListenToNavigation",
+        typeof(bool),
+        typeof(RaygunClient),
+        new PropertyMetadata(false)
+      );
+
+    /// <summary>
+    /// Causes RaygunClient.Current to listen to navigation events of the given Frame element
+    /// and send page navigation events to Raygun.
+    /// </summary>
+    /// <param name="element">A Frame element.</param>
+    /// <param name="listenToNavigation">Whether or not to listen to navigation events.</param>
+    public static void SetListenToNavigation(UIElement element, bool listenToNavigation)
+    {
+      element.SetValue(ListenToNavigationProperty, listenToNavigation);
+
+      if (listenToNavigation)
+      {
+        Current._rumService.ListenToNavigation(element);
+      }
+      else
+      {
+        Current._rumService.StopListeningToNavigation(element);
+      }
+    }
+
+    public static bool GetListenToNavigation(UIElement element)
+    {
+      return (bool)element.GetValue(ListenToNavigationProperty);
+    }
+
+    #endregion // ListenToNavigation attached property
+
     private void Application_UnhandledException(object sender, UnhandledExceptionEventArgs e)
     {
       Send(e.Exception);

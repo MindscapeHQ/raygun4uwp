@@ -4,12 +4,16 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using Windows.ApplicationModel;
 using Windows.UI.Xaml;
+using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Navigation;
 
 namespace Raygun4UWP
 {
   internal class RUMService
   {
     private readonly RaygunSettings _settings;
+
+    private static readonly Stopwatch _stopwatch = new Stopwatch();
 
     private bool _isEnabled;
     private string _sessionId;
@@ -81,7 +85,7 @@ namespace Raygun4UWP
       if (_sessionId != null)
       {
         RaygunRUMMessage sessionEndMessage = BuildSessionEventMessage(RaygunRUMEventType.SessionEnd, _sessionId);
-        
+
         _sessionId = null;
 
         await SendRUMMessageAsync(sessionEndMessage);
@@ -109,12 +113,48 @@ namespace Raygun4UWP
           }
         }
       };
-      
+
       string dataPayload = JsonConvert.SerializeObject(data, HttpService.SERIALIZATION_SETTINGS);
 
       sessionTimingMessage.EventData[0].Data = dataPayload;
 
       await SendRUMMessageAsync(sessionTimingMessage);
+    }
+
+    public void ListenToNavigation(UIElement element)
+    {
+      if (element is Frame frame)
+      {
+        frame.Navigating += Frame_OnNavigating;
+        frame.Navigated += Frame_OnNavigated;
+      }
+    }
+
+    public void StopListeningToNavigation(UIElement element)
+    {
+      if (element is Frame frame)
+      {
+        frame.Navigating -= Frame_OnNavigating;
+        frame.Navigated -= Frame_OnNavigated;
+      }
+    }
+
+    private static void Frame_OnNavigating(object sender, NavigatingCancelEventArgs e)
+    {
+      if (RaygunClient.Current != null && e.SourcePageType != null)
+      {
+        _stopwatch.Restart();
+      }
+    }
+
+    private static void Frame_OnNavigated(object sender, NavigationEventArgs e)
+    {
+      if (RaygunClient.Current != null && e.SourcePageType != null)
+      {
+        _stopwatch.Stop();
+        string name = e.SourcePageType.Name;
+        RaygunClient.Current.SendSessionTimingEventAsync(RaygunRUMEventTimingType.ViewLoaded, name, _stopwatch.ElapsedMilliseconds);
+      }
     }
 
     private async void SendSessionEndEventInternalAsync()
