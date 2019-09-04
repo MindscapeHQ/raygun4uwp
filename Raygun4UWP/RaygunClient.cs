@@ -264,7 +264,7 @@ namespace Raygun4UWP
 
     public static bool GetListenToNavigation(UIElement element)
     {
-      return (bool)element.GetValue(ListenToNavigationProperty);
+      return (bool) element.GetValue(ListenToNavigationProperty);
     }
 
     #endregion // ListenToNavigation attached property
