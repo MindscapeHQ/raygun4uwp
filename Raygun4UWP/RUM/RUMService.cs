@@ -55,6 +55,8 @@ namespace Raygun4UWP
         Application.Current.Suspending += CurrentOnSuspending;
       }
 
+      SendSessionStartEventInternalAsync();
+
       _isEnabled = true;
     }
 
@@ -155,6 +157,11 @@ namespace Raygun4UWP
         string name = e.SourcePageType.Name;
         RaygunClient.Current.SendSessionTimingEventAsync(RaygunRUMEventTimingType.ViewLoaded, name, _stopwatch.ElapsedMilliseconds);
       }
+    }
+
+    private async void SendSessionStartEventInternalAsync()
+    {
+      await SendSessionStartEventAsync();
     }
 
     private async void SendSessionEndEventInternalAsync()
