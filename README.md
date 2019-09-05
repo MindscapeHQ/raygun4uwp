@@ -174,8 +174,29 @@ private void RaygunClient_SendingCrashReport(object sender, RaygunSendingCrashRe
 Strip wrapper exceptions
 ------------------------
 
+Sometimes an exception will wrap one or more inner exceptions.
+When these are sent to Raygun, all inner exceptions are included in a single exception instance and will be considered during the grouping logic.
+In these cases, you may find outer exceptions that you're not interested in which wrap valuable inner exceptions.
+Below is an example of how you can specify which exceptions you're not interested in.
+When these are reported, they'll be stripped away and the inner exceptions will be sent as individual messages to Raygun.
+Note that TargetInvocationException will be stripped by default and setting the StrippedWrapperExceptions list will override the default list.
+
+```
+RaygunClient.Current.Settings.StrippedWrapperExceptions = new List<Type>
+{
+	typeof(TargetInvocationException),
+	typeof(AggregateException)
+};
+```
+
 Application version
 -------------------
+
+By default, Raygun will send the package version of your project with each report. If you need to provide your own custom version value, you can do so by setting the ApplicationVersion property of the RaygunClient (in the format x.x.x.x where x is a positive integer).
+
+```
+RaygunClient.Current.ApplicationVersion = "2.5.1.0";
+```
 
 Real User Monitoring
 ====================
