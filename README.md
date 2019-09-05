@@ -36,10 +36,146 @@ and send them off to your Raygun account.
 
 **EnableRealUserMonitoring** will cause the RaygunClient to listen to the app suspending and resuming events to automatically
 send session start and end events to Raygun. A session start event will also be sent at this stage.
+Raygun4UWP can not automatically detect navigation events in your application, so take a look at the Real User Monitoring documentation below to see the options of setting this up.
 
 Which products you enable is optional and will be based on what data you would like to send to Raygun.
 You could even choose not to enable either product and just use the RaygunClient to manually send exceptions or RUM events.
 Information about manually sending data can be found in the respective product documentation below.
+
+Crash Reporting
+===============
+
+Manually sending exceptions
+---------------------------
+
+The RaygunClient has methods to manually send exception information to Raygun, which is particularly useful for sending exceptions that get caught in try/catch blocks.
+Below is a simple code example of manually sending an exception.
+Note that the asynchronous 'fire and forget' method is used here so that your application can immediately continue.
+
+```
+try
+{
+  
+}
+catch (Exception e)
+{
+  new RaygunClient().SendAsync(e);
+}
+```
+
+### Custom tags
+
+The send exception method has an optional argument to send a list of string tags. These tags are useful to categorize exceptions in different ways which you can filter in Raygun.
+
+### Custom data
+
+Another optional argument of the send exception method is a dictionary of string keys and object values.
+This lets you attch custom data that you know will help investigating the exception further, such as the state of related models.
+
+SendingCrashReport event
+------------------------
+
+Every time an exception message is about to be serialized and sent to Raygun, the RaygunClient.SendingCrashReport event is invoked.
+This will be called regardless of if the exception is being reported manually, or automatically by the RaygunClient.
+The event arguments contain both the Raygun exception message and the original Exception object.
+Attaching a handler to this event can be used in a few different ways:
+
+### Modifying the message
+
+Any changes you make to e.CrashReport will be included when the report is serialized and sent to Raygun.
+Since this event handler is called for both manually and automatically sent exceptions, it's a good place to put common report logic.
+For example, you could use this to attach tags or global application data.
+
+```
+public App()
+{
+  RaygunClient.Initialize("YOUR_APP_API_KEY").EnableCrashReporting().EnableRealUserMonitoring();
+  RaygunClient.Current.SendingCrashReport += RaygunClient_SendingCrashReport;
+
+  this.InitializeComponent();
+  this.Suspending += OnSuspending;
+}
+
+private void RaygunClient_SendingCrashReport(object sender, RaygunSendingCrashReportEventArgs e)
+{
+  if (e.OriginalException.Message.Contains("Unknown error"))
+  {
+    // Tags
+	IList<string> tags = e.CrashReport.Details.Tags ?? new List<string>();
+
+	tags.Add("Unknown");
+	tags.Add("Low priority");
+	tags.Add("Not important");
+
+	e.CrashReport.Details.Tags = tags;
+	
+	// Custom data
+	IDictionary customData = e.CrashReport.Details.UserCustomData ?? new Dictionary<string, object>();
+
+	customData["currentState"] = MyApplicationModel.State;
+
+	e.CrashReport.Details.UserCustomData = customData;
+  }
+}
+```
+
+### Custom exception grouping
+
+Another common use for the SendingCrashReport event handler is to control the way that Raygun groups your exceptions.
+If you set the e.CrashReport.Details.GroupingKey property, then Raygun will use that as a grouping key when processing that report.
+Any reports that have the same GroupingKey value will be grouped together.
+You can include logic to only provide a GroupingKey for specific reports.
+Any report that doesn't have a GroupingKey will simply be grouped by the Raygun processing pipeline in the usual way.
+
+```
+public App()
+{
+  RaygunClient.Initialize("YOUR_APP_API_KEY").EnableCrashReporting().EnableRealUserMonitoring();
+  RaygunClient.Current.SendingCrashReport += RaygunClient_SendingCrashReport;
+
+  this.InitializeComponent();
+  this.Suspending += OnSuspending;
+}
+
+private void RaygunClient_SendingCrashReport(object sender, RaygunSendingCrashReportEventArgs e)
+{
+  if (e.OriginalException.Message.Contains("Unknown error"))
+  {
+	e.CrashReport.Details.GroupingKey = "UnknownErrorsThatWeJustGroupTogether";
+  }
+}
+```
+
+### Cancelling a message
+
+Setting e.Cancel to true within the SendingCrashReport event handler will tell the RaygunClient not to send the report to Raygun.
+You could check values on the RaygunCrashReport or/and the Exception object to filter out messages that you don't want.
+For example, you could cancel certain types of exceptions or reports from old devices / operating systems.
+
+```
+public App()
+{
+  RaygunClient.Initialize("YOUR_APP_API_KEY").EnableCrashReporting().EnableRealUserMonitoring();
+  RaygunClient.Current.SendingCrashReport += RaygunClient_SendingCrashReport;
+
+  this.InitializeComponent();
+  this.Suspending += OnSuspending;
+}
+
+private void RaygunClient_SendingCrashReport(object sender, RaygunSendingCrashReportEventArgs e)
+{
+  if (e.OriginalException.Message.Contains("Unknown error"))
+  {
+	e.Cancel = true;
+  }
+}
+```
+
+Strip wrapper exceptions
+------------------------
+
+Application version
+-------------------
 
 Real User Monitoring
 ====================
