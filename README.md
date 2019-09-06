@@ -2,6 +2,32 @@ Raygun4UWP
 ==========
 [Raygun](https://raygun.com) provider for Universal Windows (UWP) applications
 
+* [Installation](#installation)
+* [Where is my app API key?](#where-is-my-app-api-key)
+* [Namespace](#namespace)
+* [Getting Started](#getting-started)
+* [Crash Reporting](#crash-reporting)
+..* [Manually sending exceptions](#manually-sending-exceptions)
+....* [Custom tags](#custom-tags)
+....* [Custom data](#custom-data)
+..* [SendingCrashReport event](#sendingcrashreport-event)
+....* [Modifying the message](#modifying-the-message)
+....* [Custom exception grouping](#custom-exception-grouping)
+....* [Cancelling a message](#cancelling-a-message)
+..* [Strip wrapper exceptions](#strip-wrapper-exceptions)
+..* [Application version](#application-version)
+* [Real User Monitoring](#real-user-monitoring)
+..* [ListenToNavigation attached property](#listentonavigation-attached-property)
+..* [Manually sending RUM events](#manually-sending-rum-events)
+....* [SendSessionStartEventAsync](#sendsessionstarteventasync)
+....* [SendSessionTimingEventAsync](#sendsessiontimingeventasync)
+....* [SendSessionEndEventAsync](#sendsessionendeventasync)
+* [User Tracking](#user-tracking)
+..* [The User property](#the-user-property)
+..* [The UserInfo property](#the-userinfo-property)
+..* [RUM behaviour](#rum-behaviour)
+* [Building](#building)
+
 Installation
 ============
 
