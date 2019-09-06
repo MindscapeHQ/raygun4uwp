@@ -5,17 +5,18 @@ Raygun4UWP
 Installation
 ============
 
-Raygun4UWP is available as a NuGet package. Using your IDE of choice, or the package manager console, install the **Raygun4UWP** NuGet package into your project. More information about the NuGet package can be found [here](https://nuget.org/packages/Raygun4UWP/).
+Raygun4UWP is available as a NuGet package. Using your IDE of choice, or the package manager console, install the **Raygun4UWP** NuGet package into your project.
+More information about the NuGet package can be found [here](https://nuget.org/packages/Raygun4UWP/).
 
 Where is my app API key?
 ========================
 In order to send data to Raygun from your application, you'll need an API key.
-When you create a new application in Raygun.com, your app API key is displayed at the top of the instructions page.
+When you create a new application in Raygun.com, your app API key is displayed on the instructions page.
 You can also find the API key by clicking the "Application Settings" button in the side menu of the Raygun app.
 
 Namespace
 =========
-All the classes you'll need to use this Raygun provider can be found in the Raygun4UWP namespace.
+All the classes you'll need to use this Raygun provider can be found in the "Raygun4UWP" namespace.
 
 Getting Started
 ===============
@@ -36,7 +37,7 @@ and send them off to your Raygun account.
 
 **EnableRealUserMonitoring** will cause the RaygunClient to listen to the app suspending and resuming events to automatically
 send session start and end events to Raygun. A session start event will also be sent at this stage.
-Raygun4UWP can not automatically detect navigation events in your application, so take a look at the Real User Monitoring documentation below to see the options of setting this up.
+Raygun4UWP can not automatically detect navigation events in your application, so take a look at the [Real User Monitoring documentation](#real-user-monitoring) below to see the options of setting this up.
 
 Which products you enable is optional and will be based on what data you would like to send to Raygun.
 You could even choose not to enable either product and just use the RaygunClient to manually send exceptions or RUM events.
@@ -52,7 +53,7 @@ The RaygunClient has methods to manually send exception information to Raygun, w
 Below is a simple code example of manually sending an exception.
 Note that the asynchronous 'fire and forget' method is used here so that your application can immediately continue.
 
-```
+```csharp
 try
 {
   
@@ -75,18 +76,18 @@ This lets you attch custom data that you know will help investigating the except
 SendingCrashReport event
 ------------------------
 
-Every time an exception message is about to be serialized and sent to Raygun, the RaygunClient.SendingCrashReport event is invoked.
+Every time an exception message is about to be serialized and sent to Raygun, the `RaygunClient.SendingCrashReport` event is invoked.
 This will be called regardless of if the exception is being reported manually, or automatically by the RaygunClient.
 The event arguments contain both the Raygun exception message and the original Exception object.
 Attaching a handler to this event can be used in a few different ways:
 
 ### Modifying the message
 
-Any changes you make to e.CrashReport will be included when the report is serialized and sent to Raygun.
+Any changes you make to `e.CrashReport` will be included when the report is serialized and sent to Raygun.
 Since this event handler is called for both manually and automatically sent exceptions, it's a good place to put common report logic.
 For example, you could use this to attach tags or global application data.
 
-```
+```csharp
 public App()
 {
   RaygunClient.Initialize("YOUR_APP_API_KEY").EnableCrashReporting().EnableRealUserMonitoring();
@@ -101,33 +102,33 @@ private void RaygunClient_SendingCrashReport(object sender, RaygunSendingCrashRe
   if (e.OriginalException.Message.Contains("Unknown error"))
   {
     // Tags
-	IList<string> tags = e.CrashReport.Details.Tags ?? new List<string>();
+    IList<string> tags = e.CrashReport.Details.Tags ?? new List<string>();
 
-	tags.Add("Unknown");
-	tags.Add("Low priority");
-	tags.Add("Not important");
+    tags.Add("Unknown");
+    tags.Add("Low priority");
+    tags.Add("Not important");
 
-	e.CrashReport.Details.Tags = tags;
-	
-	// Custom data
-	IDictionary customData = e.CrashReport.Details.UserCustomData ?? new Dictionary<string, object>();
-
-	customData["currentState"] = MyApplicationModel.State;
-
-	e.CrashReport.Details.UserCustomData = customData;
+    e.CrashReport.Details.Tags = tags;
   }
+  
+  // Custom data
+  IDictionary customData = e.CrashReport.Details.UserCustomData ?? new Dictionary<string, object>();
+
+  customData["currentState"] = MyApplicationModel.State;
+
+  e.CrashReport.Details.UserCustomData = customData;
 }
 ```
 
 ### Custom exception grouping
 
 Another common use for the SendingCrashReport event handler is to control the way that Raygun groups your exceptions.
-If you set the e.CrashReport.Details.GroupingKey property, then Raygun will use that as a grouping key when processing that report.
+If you set the `e.CrashReport.Details.GroupingKey` property, then Raygun will use that as a grouping key when processing that report.
 Any reports that have the same GroupingKey value will be grouped together.
 You can include logic to only provide a GroupingKey for specific reports.
 Any report that doesn't have a GroupingKey will simply be grouped by the Raygun processing pipeline in the usual way.
 
-```
+```csharp
 public App()
 {
   RaygunClient.Initialize("YOUR_APP_API_KEY").EnableCrashReporting().EnableRealUserMonitoring();
@@ -141,18 +142,18 @@ private void RaygunClient_SendingCrashReport(object sender, RaygunSendingCrashRe
 {
   if (e.OriginalException.Message.Contains("Unknown error"))
   {
-	e.CrashReport.Details.GroupingKey = "UnknownErrorsThatWeJustGroupTogether";
+    e.CrashReport.Details.GroupingKey = "UnknownErrorsThatWeJustGroupTogether";
   }
 }
 ```
 
 ### Cancelling a message
 
-Setting e.Cancel to true within the SendingCrashReport event handler will tell the RaygunClient not to send the report to Raygun.
+Setting `e.Cancel` to true within the SendingCrashReport event handler will tell the RaygunClient not to send the report to Raygun.
 You could check values on the RaygunCrashReport or/and the Exception object to filter out messages that you don't want.
 For example, you could cancel certain types of exceptions or reports from old devices / operating systems.
 
-```
+```csharp
 public App()
 {
   RaygunClient.Initialize("YOUR_APP_API_KEY").EnableCrashReporting().EnableRealUserMonitoring();
@@ -166,7 +167,7 @@ private void RaygunClient_SendingCrashReport(object sender, RaygunSendingCrashRe
 {
   if (e.OriginalException.Message.Contains("Unknown error"))
   {
-	e.Cancel = true;
+    e.Cancel = true;
   }
 }
 ```
@@ -175,26 +176,27 @@ Strip wrapper exceptions
 ------------------------
 
 Sometimes an exception will wrap one or more inner exceptions.
-When these are sent to Raygun, all inner exceptions are included in a single exception instance and will be considered during the grouping logic.
+When these are sent to Raygun, all inner exceptions are included in a single exception report and will be considered during the grouping logic.
 In these cases, you may find outer exceptions that you're not interested in which wrap valuable inner exceptions.
 Below is an example of how you can specify which exceptions you're not interested in.
 When these are reported, they'll be stripped away and the inner exceptions will be sent as individual messages to Raygun.
 Note that TargetInvocationException will be stripped by default and setting the StrippedWrapperExceptions list will override the default list.
 
-```
+```csharp
 RaygunClient.Current.Settings.StrippedWrapperExceptions = new List<Type>
 {
-	typeof(TargetInvocationException),
-	typeof(AggregateException)
+  typeof(TargetInvocationException),
+  typeof(AggregateException)
 };
 ```
 
 Application version
 -------------------
 
-By default, Raygun will send the package version of your project with each report. If you need to provide your own custom version value, you can do so by setting the ApplicationVersion property of the RaygunClient (in the format x.x.x.x where x is a positive integer).
+By default, each exception report will include the version of your application package.
+If you need to provide your own custom version value, you can do so by setting the ApplicationVersion property of the RaygunClient (in the format x.x.x.x where x is a positive integer).
 
-```
+```csharp
 RaygunClient.Current.ApplicationVersion = "2.5.1.0";
 ```
 
@@ -203,28 +205,30 @@ Real User Monitoring
 
 Navigation in a UWP application can be implemented in many different ways and there are no global navigation events to hook in to.
 Because of this, Raygun4UWP won't be able to automatically send page-view events to Raygun. Instead, Raygun4UWP provides two
-mechanisms for sending navigation events to Raygun - the ListenToNavigation attached peroprty and the ability to manually send events.
+mechanisms for sending navigation events to Raygun - the ListenToNavigation attached property and the ability to manually send events.
 
 ListenToNavigation attached property
 ------------------------------------
 
-The RaygunClient includes an attached property called ListenToNavigation which currently supports the Frame element. This will attach event handlers
-to the navigating and navigated events, allowing Raygun4UWP to measure the time it takes to perform a Frame navigation, and send an event to Raygun.
+The RaygunClient includes an attached property called `ListenToNavigation` which currently supports the Frame element. This will attach event handlers
+to the navigating and navigated events, allowing Raygun4UWP to measure the time it takes to perform a Frame navigation and send an event to Raygun.
 The name of the event will be the Type name of the page that was navigated to.
 
-To do this in XAML, first add the namespace to the top level tag:
+To do this in XAML, first add the Raygun4UWP namespace to the top level tag of a page that contains a Frame that you want to track:
 
 ```xml
-xmlns:raygun="using:Raygun4UWP"
+<MainPage xmlns:raygun="using:Raygun4UWP">
+...
+</MainPage>
 ```
 
-And then set the attached property to true on the Frame tag:
+And then set the attached property to true on the Frame element:
 
 ```xml
-raygun:RaygunClient.ListenToNavigation="True"
+<Frame raygun:RaygunClient.ListenToNavigation="True" />
 ```
 
-Alternatively, here's an example of setting this up in CSharp:
+Alternatively, here's an example of setting this up in C#:
 
 ```csharp
 RaygunClient.SetListenToNavigation(frame, true);
@@ -233,7 +237,7 @@ RaygunClient.SetListenToNavigation(frame, true);
 Manually sending RUM events
 ---------------------------
 
-RaygunClient includes methods for sending the 3 different types of RUM events:
+RaygunClient includes methods for sending the three different types of RUM events:
 
 ### SendSessionStartEventAsync
 
@@ -242,10 +246,10 @@ If there is currently an active session, then it will first be ended before a ne
 
 ### SendSessionTimingEventAsync
 
-A timing event is made up of a type, a name and a duration in milliseconds. The type is an enum value which can either be ViewLoaded or NetworkCall.
+A timing event is made up of a type, a name and a duration in milliseconds. The type is an enum value which can either be `ViewLoaded` or `NetworkCall`.
 The name can be whatever you want - pick something that helps you identify the event when viewing the data in Raygun.
 Where possible, time how long the event takes so that you can collect performence metrics.
-If it's not possible, or it doesn't make sense for an event to have a duration, then you can leave it as 0.
+If it's not possible, or it doesn't make sense for an event to have a duration, then you can leave it as zero.
 If this method is called when there isn't currently an active session, then a new session will be started first.
 
 ### SendSessionEndEventAsync
@@ -260,7 +264,7 @@ Both Crash Reporting and Real User Monitoring have the ability to specify user i
 If you do not specify any user information, then a default random GUID will be stored in the roaming app data and will be included with all payloads sent to Raygun.
 This is enough to get statistics about how many unique users are affected by exceptions, or how many unique users are using your application over time.
 
-There are 2 different ways that you can provide different user information which are described below.
+There are two different ways that you can provide different user information which are described below.
 Please be aware of any company privacy policies you have when choosing what type of user information you send to Raygun.
 
 ### The User property
@@ -271,34 +275,33 @@ This string can be whatever you like. Below are some common suggestions.
 
 * Identifying information such as name or email address
 * An id that doesn't reveal any information about the user, but can be looked up in your own systems to find out who the user it.
-* Your own random string if you don't want to use the one Raygun stores in roaming app data. This may however result in unreliable user statistic in Raygun.
+* Your own random string if you don't want to use the one Raygun stores in roaming app data. This may however result in unreliable user statistics in Raygun.
 
 ### The UserInfo property
 
-If a single string is not enough to describe the information that you want to log about a user, then you can use the UserInfo property.
+If a single string is not enough to describe the information that you want to log about a user, then you can set the `UserInfo` property.
 Below are the various properties that you can use to describe the user. The Identifier is the only required field, which can be provided through the constructor.
 
-```Identifier``` The unique identifier you want to use to identify this user. Suggestions for what you could set this to are lister in the User property section above.
+**Identifier** The unique identifier you want to use to identify this user. Suggestions for what you could set this to are listed in the User property section above.
 
-```IsAnonymous``` A flag indicating whether the user is logged in (or identifiable) or if they are anonymous. An anonymous user can still have a unique identifier.
+**IsAnonymous** A flag indicating whether the user is logged in (or identifiable) or if they are anonymous. An anonymous user still requires an identifier.
 
-```Email``` The user's email address. If you use email addresses to identify your users, feel free to set the identifier to their email and leave this blank, as we will use the identifier as the email address if it looks like one, and no email address is not specified.
+**UUID** A device identifier. Could be used to identify users across devices, or machines that are breaking for many users.
 
-```FullName``` The user's full name.
-
-```FirstName``` The user's first (or preferred) name.
-
-```UUID``` A device identifier. Could be used to identify users across devices, or machines that are breaking for many users.
+**Email**, **FullName** and **FirstName** are self explanitory.
 
 ### RUM behaviour
 
 If you have enabled Real User Monitoring on the RaygunClient, then changing the User or UserInfo properties can cause additional events to be sent to Raygun.
-If the user is not null, and then overriden by different user information, then a session-end event will be sent to Raygun.
+If the user is not currently null and then overriden by different user information, then a session-end event will be sent to Raygun.
 This is because a session can only have a single user, so changing the user represents a logout/login scenario that ends the current session for a new one to begin.
 
 Building
 ========
-This repository includes a build.bat script for anyone who wants to build and package this provider. The build script uses [psake](https://github.com/psake/psake) which in turn uses [vssetup.powershell](https://github.com/microsoft/vssetup.powershell) to find and run MSBuild. The build script will automatically attempt to install these, so the first time you run the script, you may come across the following prompts. You'll need to respond Y to all of these in order to continue the build.
+This repository includes a build.bat script for anyone who wants to build and package this provider.
+The build script uses [psake](https://github.com/psake/psake) which in turn uses [vssetup.powershell](https://github.com/microsoft/vssetup.powershell) to find and run MSBuild.
+The build script will automatically attempt to install these, so the first time you run the script, you may come across the following prompts.
+You'll need to respond Y to all of these in order to continue the build.
 
 ```
 NuGet provider is required to continue
