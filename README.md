@@ -10,7 +10,7 @@ Raygun4UWP
   * [Manually sending exceptions](#manually-sending-exceptions)
     * [Custom tags](#custom-tags)
     * [Custom data](#custom-data)
-  * [SendingCrashReport event](#sendingcrashreport-event)
+  * [The SendingCrashReport event](#the-sendingcrashreport-event)
     * [Modifying the message](#modifying-the-message)
     * [Custom exception grouping](#custom-exception-grouping)
     * [Cancelling a message](#cancelling-a-message)
@@ -99,7 +99,7 @@ The send exception method has an optional argument to send a list of string tags
 Another optional argument of the send exception method is a dictionary of string keys and object values.
 This lets you attch custom data that you know will help investigating the exception further, such as the state of related models.
 
-SendingCrashReport event
+The SendingCrashReport event
 ------------------------
 
 Every time an exception message is about to be serialized and sent to Raygun, the `RaygunClient.SendingCrashReport` event is invoked.
