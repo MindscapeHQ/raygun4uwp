@@ -3,9 +3,10 @@ Raygun4UWP
 [Raygun](https://raygun.com) provider for Universal Windows (UWP) applications
 
 * [Installation](#installation)
-* [Where is my app API key?](#where-is-my-app-api-key)
-* [Namespace](#namespace)
 * [Getting Started](#getting-started)
+  * [Where is my app API key?](#where-is-my-app-api-key)
+  * [Namespace](#namespace)
+  * [Initialization](#initialization)
 * [Crash Reporting](#crash-reporting)
   * [Manually sending exceptions](#manually-sending-exceptions)
     * [Custom tags](#custom-tags)
@@ -17,7 +18,7 @@ Raygun4UWP
   * [Strip wrapper exceptions](#strip-wrapper-exceptions)
   * [Application version](#application-version)
 * [Real User Monitoring](#real-user-monitoring)
-  * [ListenToNavigation attached property](#listentonavigation-attached-property)
+  * [The ListenToNavigation attached property](#the-listentonavigation-attached-property)
   * [Manually sending RUM events](#manually-sending-rum-events)
     * [SendSessionStartEventAsync](#sendsessionstarteventasync)
     * [SendSessionTimingEventAsync](#sendsessiontimingeventasync)
@@ -34,18 +35,21 @@ Installation
 Raygun4UWP is available as a NuGet package. Using your IDE of choice, or the package manager console, install the **Raygun4UWP** NuGet package into your project.
 More information about the NuGet package can be found [here](https://nuget.org/packages/Raygun4UWP/).
 
+Getting Started
+===============
+
 Where is my app API key?
-========================
+------------------------
 In order to send data to Raygun from your application, you'll need an API key.
 When you create a new application in Raygun.com, your app API key is displayed on the instructions page.
 You can also find the API key by clicking the "Application Settings" button in the side menu of the Raygun app.
 
 Namespace
-=========
+---------
 All the classes you'll need to use this Raygun provider can be found in the "Raygun4UWP" namespace.
 
-Getting Started
-===============
+Initialization
+--------------
 
 The most basic setup of Raygun4UWP can be achieved with a single line of code. Place this within the App.xaml.cs constructor.
 
@@ -100,7 +104,7 @@ Another optional argument of the send exception method is a dictionary of string
 This lets you attch custom data that you know will help investigating the exception further, such as the state of related models.
 
 The SendingCrashReport event
-------------------------
+----------------------------
 
 Every time an exception message is about to be serialized and sent to Raygun, the `RaygunClient.SendingCrashReport` event is invoked.
 This will be called regardless of if the exception is being reported manually, or automatically by the RaygunClient.
@@ -233,8 +237,8 @@ Navigation in a UWP application can be implemented in many different ways and th
 Because of this, Raygun4UWP won't be able to automatically send page-view events to Raygun. Instead, Raygun4UWP provides two
 mechanisms for sending navigation events to Raygun - the ListenToNavigation attached property and the ability to manually send events.
 
-ListenToNavigation attached property
-------------------------------------
+The ListenToNavigation attached property
+----------------------------------------
 
 The RaygunClient includes an attached property called `ListenToNavigation` which currently supports the Frame element. This will attach event handlers
 to the navigating and navigated events, allowing Raygun4UWP to measure the time it takes to perform a Frame navigation and send an event to Raygun.
@@ -293,7 +297,8 @@ This is enough to get statistics about how many unique users are affected by exc
 There are two different ways that you can provide different user information which are described below.
 Please be aware of any company privacy policies you have when choosing what type of user information you send to Raygun.
 
-### The User property
+The User property
+-----------------
 
 If all you need to identify a user is a single string, then you can set the ```User``` property.
 Note that setting this to null or whitespace will cause the default random GUID descibed above will be used.
@@ -303,7 +308,8 @@ This string can be whatever you like. Below are some common suggestions.
 * An id that doesn't reveal any information about the user, but can be looked up in your own systems to find out who the user it.
 * Your own random string if you don't want to use the one Raygun stores in roaming app data. This may however result in unreliable user statistics in Raygun.
 
-### The UserInfo property
+The UserInfo property
+---------------------
 
 If a single string is not enough to describe the information that you want to log about a user, then you can set the `UserInfo` property.
 Below are the various properties that you can use to describe the user. The Identifier is the only required field, which can be provided through the constructor.
@@ -314,9 +320,10 @@ Below are the various properties that you can use to describe the user. The Iden
 
 **UUID** A device identifier. Could be used to identify users across devices, or machines that are breaking for many users.
 
-**Email**, **FullName** and **FirstName** are self explanitory.
+**Email**, **FullName** and **FirstName** are self explanatory.
 
-### RUM behaviour
+RUM behaviour
+-------------
 
 If you have enabled Real User Monitoring on the RaygunClient, then changing the User or UserInfo properties can cause additional events to be sent to Raygun.
 If the user is not currently null and then overriden by different user information, then a session-end event will be sent to Raygun.
