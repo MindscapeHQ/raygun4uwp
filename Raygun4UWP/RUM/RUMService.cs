@@ -71,7 +71,7 @@ namespace Raygun4UWP
       _isEnabled = false;
     }
 
-    public async Task SendSessionStartEventAsync()
+    public async Task<RaygunRUMMessage> SendSessionStartEventAsync()
     {
       await SendSessionEndEventAsync();
 
@@ -80,6 +80,8 @@ namespace Raygun4UWP
       RaygunRUMMessage sessionStartMessage = BuildSessionEventMessage(RaygunRUMEventType.SessionStart, _sessionId);
 
       await SendRUMMessageAsync(sessionStartMessage);
+
+      return sessionStartMessage;
     }
 
     public async Task SendSessionEndEventAsync()
