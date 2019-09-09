@@ -84,19 +84,23 @@ namespace Raygun4UWP
       return sessionStartMessage;
     }
 
-    public async Task SendSessionEndEventAsync()
+    public async Task<RaygunRUMMessage> SendSessionEndEventAsync()
     {
+      RaygunRUMMessage sessionEndMessage = null;
+
       if (_sessionId != null)
       {
-        RaygunRUMMessage sessionEndMessage = BuildSessionEventMessage(RaygunRUMEventType.SessionEnd, _sessionId);
+        sessionEndMessage = BuildSessionEventMessage(RaygunRUMEventType.SessionEnd, _sessionId);
 
         _sessionId = null;
 
         await SendRUMMessageAsync(sessionEndMessage);
       }
+
+      return sessionEndMessage;
     }
 
-    public async Task SendSessionTimingEventAsync(RaygunRUMEventTimingType type, string name, long milliseconds)
+    public async Task<RaygunRUMMessage> SendSessionTimingEventAsync(RaygunRUMEventTimingType type, string name, long milliseconds)
     {
       if (_sessionId == null)
       {
@@ -123,6 +127,8 @@ namespace Raygun4UWP
       sessionTimingMessage.EventData[0].Data = dataPayload;
 
       await SendRUMMessageAsync(sessionTimingMessage);
+
+      return sessionTimingMessage;
     }
 
     public void ListenToNavigation(UIElement element)
