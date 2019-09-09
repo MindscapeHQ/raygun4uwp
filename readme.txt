@@ -193,17 +193,6 @@ RaygunClient.Current.Settings.StrippedWrapperExceptions = new List<Type>
 };
 ________________________________________________________________________
 
-Application version
--------------------
-
-By default, each exception report will include the version of your application package.
-If you need to provide your own custom version value, you can do so by setting the ApplicationVersion property of the RaygunClient (in the format x.x.x.x where x is a positive integer).
-
-____________________________________________________
-
-RaygunClient.Current.ApplicationVersion = "2.5.1.0";
-____________________________________________________
-
 
 ========================================================================================================================================================
 REAL USER MONITORING
@@ -217,8 +206,8 @@ The ListenToNavigation attached property
 ----------------------------------------
 
 The RaygunClient includes an attached property called "ListenToNavigation" which currently supports the Frame element. This will attach event handlers
-to the navigating and navigated events, allowing Raygun4UWP to measure the time it takes to perform a Frame navigation and send an event to Raygun.
-The name of the event will be the Type name of the page that was navigated to.
+to the loading/loaded and navigating/navigated events, allowing Raygun4UWP to measure the time it takes to perform a Frame navigation and send an event to Raygun.
+The name of the event will be the name of the page class type that was navigated to.
 
 To do this in XAML, first add the Raygun4UWP namespace to the top level tag of a page that contains a Frame that you want to track:
 
@@ -269,8 +258,11 @@ Ends any currently open session and sends a session end event to Raygun. Any sub
 If there currently isn't an active session, then calling this method does nothing.
 
 ========================================================================================================================================================
-USER TRACKING
+COMMON FEATURES
 ========================================================================================================================================================
+
+User Tracking
+-------------
 
 Both Crash Reporting and Real User Monitoring have the ability to specify user information.
 If you do not specify any user information, then a default random GUID will be stored in the roaming app data and will be included with all payloads sent to Raygun.
@@ -279,8 +271,7 @@ This is enough to get statistics about how many unique users are affected by exc
 There are two different ways that you can provide different user information which are described below.
 Please be aware of any company privacy policies you have when choosing what type of user information you send to Raygun.
 
-The User property
------------------
+-- The User property --
 
 If all you need to identify a user is a single string, then you can set the "User" property.
 Note that setting this to null or whitespace will cause the default random GUID descibed above will be used.
@@ -290,8 +281,7 @@ This string can be whatever you like. Below are some common suggestions.
 * An id that doesn't reveal any information about the user, but can be looked up in your own systems to find out who the user it.
 * Your own random string if you don't want to use the one Raygun stores in roaming app data. This may however result in unreliable user statistics in Raygun.
 
-The UserInfo property
----------------------
+-- The UserInfo property --
 
 If a single string is not enough to describe the information that you want to log about a user, then you can set the "UserInfo" property.
 Below are the various properties that you can use to describe the user. The Identifier is the only required field, which can be provided through the constructor.
@@ -304,9 +294,19 @@ Below are the various properties that you can use to describe the user. The Iden
 
 "Email", "FullName" and "FirstName" are self explanatory.
 
-RUM behaviour
--------------
+-- RUM behaviour --
 
 If you have enabled Real User Monitoring on the RaygunClient, then changing the User or UserInfo properties can cause additional events to be sent to Raygun.
 If the user is not currently null and then overriden by different user information, then a session-end event will be sent to Raygun.
 This is because a session can only have a single user, so changing the user represents a logout/login scenario that ends the current session for a new one to begin.
+
+Application version
+-------------------
+
+By default, each exception report and RUM event will include the version of your application package.
+If you need to provide your own custom version value, you can do so by setting the ApplicationVersion property of the RaygunClient (in the format x.x.x.x where x is a positive integer).
+
+____________________________________________________
+
+RaygunClient.Current.ApplicationVersion = "2.5.1.0";
+____________________________________________________
