@@ -389,7 +389,7 @@ namespace Raygun4UWP
       }
       catch (Exception ex)
       {
-        Debug.WriteLine($"Error Logging Exception to Raygun: {ex.Message}");
+        Debug.WriteLine($"Error logging Exception to Raygun: {ex.Message}");
         if (saveOnFail)
         {
           SaveCrashReportAsync(payload).Wait(3000);

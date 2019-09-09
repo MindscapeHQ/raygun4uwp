@@ -73,13 +73,22 @@ namespace Raygun4UWP
 
     public async Task<RaygunRUMMessage> SendSessionStartEventAsync()
     {
-      await SendSessionEndEventAsync();
+      RaygunRUMMessage sessionStartMessage = null;
 
-      _sessionId = Guid.NewGuid().ToString();
+      try
+      {
+        await SendSessionEndEventAsync();
 
-      RaygunRUMMessage sessionStartMessage = BuildSessionEventMessage(RaygunRUMEventType.SessionStart, _sessionId);
+        _sessionId = Guid.NewGuid().ToString();
 
-      await SendRUMMessageAsync(sessionStartMessage);
+        sessionStartMessage = BuildSessionEventMessage(RaygunRUMEventType.SessionStart, _sessionId);
+
+        await SendRUMMessageAsync(sessionStartMessage);
+      }
+      catch (Exception ex)
+      {
+        Debug.WriteLine($"Error sending session-start event to Raygun: {ex.Message}");
+      }
 
       return sessionStartMessage;
     }
@@ -88,13 +97,20 @@ namespace Raygun4UWP
     {
       RaygunRUMMessage sessionEndMessage = null;
 
-      if (_sessionId != null)
+      try
       {
-        sessionEndMessage = BuildSessionEventMessage(RaygunRUMEventType.SessionEnd, _sessionId);
+        if (_sessionId != null)
+        {
+          sessionEndMessage = BuildSessionEventMessage(RaygunRUMEventType.SessionEnd, _sessionId);
 
-        _sessionId = null;
+          _sessionId = null;
 
-        await SendRUMMessageAsync(sessionEndMessage);
+          await SendRUMMessageAsync(sessionEndMessage);
+        }
+      }
+      catch (Exception ex)
+      {
+        Debug.WriteLine($"Error sending session-end event to Raygun: {ex.Message}");
       }
 
       return sessionEndMessage;
@@ -102,31 +118,40 @@ namespace Raygun4UWP
 
     public async Task<RaygunRUMMessage> SendSessionTimingEventAsync(RaygunRUMEventTimingType type, string name, long milliseconds)
     {
-      if (_sessionId == null)
-      {
-        await SendSessionStartEventAsync();
-      }
+      RaygunRUMMessage sessionTimingMessage = null;
 
-      RaygunRUMMessage sessionTimingMessage = BuildSessionEventMessage(RaygunRUMEventType.Timing, _sessionId);
-
-      var data = new RaygunRUMTimingData[]
+      try
       {
-        new RaygunRUMTimingData
+        if (_sessionId == null)
         {
-          Name = name,
-          Timing = new RaygunRUMTimingInfo
-          {
-            Type = type,
-            Duration = milliseconds
-          }
+          await SendSessionStartEventAsync();
         }
-      };
 
-      string dataPayload = JsonConvert.SerializeObject(data, HttpService.SERIALIZATION_SETTINGS);
+        sessionTimingMessage = BuildSessionEventMessage(RaygunRUMEventType.Timing, _sessionId);
 
-      sessionTimingMessage.EventData[0].Data = dataPayload;
+        var data = new RaygunRUMTimingData[]
+        {
+          new RaygunRUMTimingData
+          {
+            Name = name,
+            Timing = new RaygunRUMTimingInfo
+            {
+              Type = type,
+              Duration = milliseconds
+            }
+          }
+        };
 
-      await SendRUMMessageAsync(sessionTimingMessage);
+        string dataPayload = JsonConvert.SerializeObject(data, HttpService.SERIALIZATION_SETTINGS);
+
+        sessionTimingMessage.EventData[0].Data = dataPayload;
+
+        await SendRUMMessageAsync(sessionTimingMessage);
+      }
+      catch (Exception ex)
+      {
+        Debug.WriteLine($"Error sending RUM timing event to Raygun: {ex.Message}");
+      }
 
       return sessionTimingMessage;
     }
@@ -155,41 +180,69 @@ namespace Raygun4UWP
 
     private void Frame_OnLoading(FrameworkElement sender, object args)
     {
-      Frame frame = sender as Frame;
-
-      if (RaygunClient.Current != null && frame.Content != null)
+      try
       {
-        _stopwatch.Restart();
+        Frame frame = sender as Frame;
+
+        if (RaygunClient.Current != null && frame.Content != null)
+        {
+          _stopwatch.Restart();
+        }
+      }
+      catch (Exception ex)
+      {
+        Debug.WriteLine($"Error handling frame loading: {ex.Message}");
       }
     }
 
     private void Frame_OnLoaded(object sender, RoutedEventArgs e)
     {
-      Frame frame = sender as Frame;
-
-      if (RaygunClient.Current != null && frame.Content != null)
+      try
       {
-        _stopwatch.Stop();
-        string name = frame.Content.GetType().Name;
-        RaygunClient.Current.SendSessionTimingEventAsync(RaygunRUMEventTimingType.ViewLoaded, name, _stopwatch.ElapsedMilliseconds);
+        Frame frame = sender as Frame;
+
+        if (RaygunClient.Current != null && frame.Content != null)
+        {
+          _stopwatch.Stop();
+          string name = frame.Content.GetType().Name;
+          RaygunClient.Current.SendSessionTimingEventAsync(RaygunRUMEventTimingType.ViewLoaded, name, _stopwatch.ElapsedMilliseconds);
+        }
+      }
+      catch (Exception ex)
+      {
+        Debug.WriteLine($"Error handling frame loaded: {ex.Message}");
       }
     }
 
     private static void Frame_OnNavigating(object sender, NavigatingCancelEventArgs e)
     {
-      if (RaygunClient.Current != null && e.SourcePageType != null)
+      try
       {
-        _stopwatch.Restart();
+        if (RaygunClient.Current != null && e.SourcePageType != null)
+        {
+          _stopwatch.Restart();
+        }
+      }
+      catch (Exception ex)
+      {
+        Debug.WriteLine($"Error handling frame navigating: {ex.Message}");
       }
     }
 
     private static void Frame_OnNavigated(object sender, NavigationEventArgs e)
     {
-      if (RaygunClient.Current != null && e.Content != null)
+      try
       {
-        _stopwatch.Stop();
-        string name = e.Content.GetType().Name;
-        RaygunClient.Current.SendSessionTimingEventAsync(RaygunRUMEventTimingType.ViewLoaded, name, _stopwatch.ElapsedMilliseconds);
+        if (RaygunClient.Current != null && e.Content != null)
+        {
+          _stopwatch.Stop();
+          string name = e.Content.GetType().Name;
+          RaygunClient.Current.SendSessionTimingEventAsync(RaygunRUMEventTimingType.ViewLoaded, name, _stopwatch.ElapsedMilliseconds);
+        }
+      }
+      catch (Exception ex)
+      {
+        Debug.WriteLine($"Error handling frame navigated: {ex.Message}");
       }
     }
 
@@ -228,11 +281,18 @@ namespace Raygun4UWP
 
     private async Task SendRUMMessageAsync(RaygunRUMMessage message)
     {
-      if (ValidateApiKey())
+      try
       {
-        string payload = JsonConvert.SerializeObject(message, HttpService.SERIALIZATION_SETTINGS);
+        if (ValidateApiKey())
+        {
+          string payload = JsonConvert.SerializeObject(message, HttpService.SERIALIZATION_SETTINGS);
 
-        await HttpService.SendRequestAsync(_settings.RealUserMonitoringApiEndpoint, _settings.ApiKey, payload);
+          await HttpService.SendRequestAsync(_settings.RealUserMonitoringApiEndpoint, _settings.ApiKey, payload);
+        }
+      }
+      catch (Exception ex)
+      {
+        Debug.WriteLine($"Error sending RUM message to Raygun: {ex.Message}");
       }
     }
 
