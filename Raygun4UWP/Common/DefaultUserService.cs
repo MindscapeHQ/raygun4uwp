@@ -22,7 +22,7 @@ namespace Raygun4UWP
 
             if (!(defaultUserObj is string))
             {
-              string id = Guid.NewGuid().ToString().Replace("-", string.Empty);
+              string id = Guid.NewGuid().ToString();
               ApplicationData.Current.RoamingSettings.Values[DEFAULT_USER_ID_KEY] = id;
               defaultUserObj = id;
             }
