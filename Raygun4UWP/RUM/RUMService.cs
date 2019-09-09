@@ -137,6 +137,8 @@ namespace Raygun4UWP
       {
         frame.Navigating += Frame_OnNavigating;
         frame.Navigated += Frame_OnNavigated;
+        frame.Loading += Frame_OnLoading;
+        frame.Loaded += Frame_OnLoaded;
       }
     }
 
@@ -146,6 +148,30 @@ namespace Raygun4UWP
       {
         frame.Navigating -= Frame_OnNavigating;
         frame.Navigated -= Frame_OnNavigated;
+        frame.Loading -= Frame_OnLoading;
+        frame.Loaded -= Frame_OnLoaded;
+      }
+    }
+
+    private void Frame_OnLoading(FrameworkElement sender, object args)
+    {
+      Frame frame = sender as Frame;
+
+      if (RaygunClient.Current != null && frame.Content != null)
+      {
+        _stopwatch.Restart();
+      }
+    }
+
+    private void Frame_OnLoaded(object sender, RoutedEventArgs e)
+    {
+      Frame frame = sender as Frame;
+
+      if (RaygunClient.Current != null && frame.Content != null)
+      {
+        _stopwatch.Stop();
+        string name = frame.Content.GetType().Name;
+        RaygunClient.Current.SendSessionTimingEventAsync(RaygunRUMEventTimingType.ViewLoaded, name, _stopwatch.ElapsedMilliseconds);
       }
     }
 
@@ -159,10 +185,10 @@ namespace Raygun4UWP
 
     private static void Frame_OnNavigated(object sender, NavigationEventArgs e)
     {
-      if (RaygunClient.Current != null && e.SourcePageType != null)
+      if (RaygunClient.Current != null && e.Content != null)
       {
         _stopwatch.Stop();
-        string name = e.SourcePageType.Name;
+        string name = e.Content.GetType().Name;
         RaygunClient.Current.SendSessionTimingEventAsync(RaygunRUMEventTimingType.ViewLoaded, name, _stopwatch.ElapsedMilliseconds);
       }
     }
