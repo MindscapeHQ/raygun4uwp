@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using Windows.ApplicationModel;
@@ -13,7 +14,7 @@ namespace Raygun4UWP
   {
     private readonly RaygunSettings _settings;
 
-    private static readonly Stopwatch _stopwatch = new Stopwatch();
+    private static readonly Dictionary<FrameworkElement, Stopwatch> _timers = new Dictionary<FrameworkElement, Stopwatch>();
 
     private bool _isEnabled;
     private string _sessionId;
@@ -164,6 +165,8 @@ namespace Raygun4UWP
         frame.Navigated += Frame_OnNavigated;
         frame.Loading += Frame_OnLoading;
         frame.Loaded += Frame_OnLoaded;
+
+        _timers[frame] = new Stopwatch();
       }
     }
 
@@ -175,6 +178,8 @@ namespace Raygun4UWP
         frame.Navigated -= Frame_OnNavigated;
         frame.Loading -= Frame_OnLoading;
         frame.Loaded -= Frame_OnLoaded;
+
+        _timers.Remove(frame);
       }
     }
 
@@ -184,9 +189,12 @@ namespace Raygun4UWP
       {
         Frame frame = sender as Frame;
 
-        if (RaygunClient.Current != null && frame.Content != null)
+        if (RaygunClient.Current != null && frame?.Content != null)
         {
-          _stopwatch.Restart();
+          if (_timers.TryGetValue(frame, out var stopwatch))
+          {
+            stopwatch.Restart();
+          }
         }
       }
       catch (Exception ex)
@@ -201,11 +209,14 @@ namespace Raygun4UWP
       {
         Frame frame = sender as Frame;
 
-        if (RaygunClient.Current != null && frame.Content != null)
+        if (RaygunClient.Current != null && frame?.Content != null)
         {
-          _stopwatch.Stop();
-          string name = frame.Content.GetType().Name;
-          RaygunClient.Current.SendSessionTimingEventAsync(RaygunRUMEventTimingType.ViewLoaded, name, _stopwatch.ElapsedMilliseconds);
+          if (_timers.TryGetValue(frame, out var stopwatch))
+          {
+            stopwatch.Stop();
+            string name = frame.Content.GetType().Name;
+            RaygunClient.Current.SendSessionTimingEventAsync(RaygunRUMEventTimingType.ViewLoaded, name, stopwatch.ElapsedMilliseconds);
+          }
         }
       }
       catch (Exception ex)
@@ -218,9 +229,14 @@ namespace Raygun4UWP
     {
       try
       {
-        if (RaygunClient.Current != null && e.SourcePageType != null)
+        Frame frame = sender as Frame;
+
+        if (RaygunClient.Current != null && frame != null && e.SourcePageType != null)
         {
-          _stopwatch.Restart();
+          if (_timers.TryGetValue(frame, out var stopwatch))
+          {
+            stopwatch.Restart();
+          }
         }
       }
       catch (Exception ex)
@@ -233,11 +249,16 @@ namespace Raygun4UWP
     {
       try
       {
-        if (RaygunClient.Current != null && e.Content != null)
+        Frame frame = sender as Frame;
+
+        if (RaygunClient.Current != null && frame != null && e.Content != null)
         {
-          _stopwatch.Stop();
-          string name = e.Content.GetType().Name;
-          RaygunClient.Current.SendSessionTimingEventAsync(RaygunRUMEventTimingType.ViewLoaded, name, _stopwatch.ElapsedMilliseconds);
+          if (_timers.TryGetValue(frame, out var stopwatch))
+          {
+            stopwatch.Stop();
+            string name = e.Content.GetType().Name;
+            RaygunClient.Current.SendSessionTimingEventAsync(RaygunRUMEventTimingType.ViewLoaded, name, stopwatch.ElapsedMilliseconds);
+          }
         }
       }
       catch (Exception ex)
