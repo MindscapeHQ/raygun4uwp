@@ -248,7 +248,16 @@ namespace Raygun4UWP
 
     private async void SendSessionStartEventInternalAsync()
     {
-      await SendSessionStartEventAsync();
+      // This is called when RUM is enabled which is typically just as the application is starting up.
+      // We delay the first message to give the application a bit of time to initialize,
+      // otherwise the message seems to fail to be sent due to a silent issue.
+      // As this is asynchronous, this does not delay application start up times.
+      await Task.Delay(3000);
+      // Check to see that there's no session, in case some other operation already started one during the above delay.
+      if (_sessionId == null)
+      {
+        await SendSessionStartEventAsync();
+      }
     }
 
     private async void SendSessionEndEventInternalAsync()
