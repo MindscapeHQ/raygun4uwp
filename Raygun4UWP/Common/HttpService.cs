@@ -4,13 +4,27 @@ using System.Linq;
 using System.Threading.Tasks;
 using Windows.Networking.Connectivity;
 using Windows.Web.Http;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace Raygun4UWP
 {
   internal static class HttpService
   {
+    public static readonly JsonSerializerSettings SERIALIZATION_SETTINGS;
+
     private static HttpClient _httpClient;
     private static bool _isInternetAvailable;
+
+    static HttpService()
+    {
+      SERIALIZATION_SETTINGS = new JsonSerializerSettings
+      {
+        NullValueHandling = NullValueHandling.Ignore,
+        Formatting = Formatting.None,
+        Converters = new JsonConverter[] { new StringEnumConverter() }
+      };
+    }
 
     private static void Initialize()
     {

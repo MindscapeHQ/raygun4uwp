@@ -199,8 +199,8 @@ namespace Raygun4UWP
                 // Parse the line number:
                 lineNumberIndex += LINE_NUMBER_PREFIX.Length;
                 string lineNumberStr = stackTraceLine.Substring(lineNumberIndex);
-                int lineNumber;
-                if (int.TryParse(lineNumberStr, out lineNumber))
+
+                if (int.TryParse(lineNumberStr, out var lineNumber))
                 {
                   stackTraceFrame.LineNumber = lineNumber;
                 }
