@@ -8,6 +8,7 @@ Raygun4UWP
   * [Namespace](#namespace)
   * [Initialization](#initialization)
 * [Crash Reporting](#crash-reporting)
+  * [Upload your PDB files](#upload-your-pdb-files)
   * [Manually sending exceptions](#manually-sending-exceptions)
     * [Custom tags](#custom-tags)
     * [Custom data](#custom-data)
@@ -77,6 +78,16 @@ Information about manually sending data can be found in the respective product d
 Crash Reporting
 ===============
 
+Upload your PDB files
+---------------------
+
+Crash reports that are generated from the release build of you application will not include line numbers or file names in the stack traces. Some stack trace frames may not even have class or method names.
+This is because this information is not available within your application while it's running, but can be looked up from associated PDB files.
+
+PDB files can be uploaded to Raygun, which will be used to process your crash reports and resolve missing information.
+Raygun provides two ways to upload your files - an API end point which is useful for automation and manual upload from within the Raygun web app.
+Read more about this in the [Raygun documentation](https://raygun.com/documentation/language-guides/dotnet/crash-reporting/uwp/#upload-your-pdb-files).
+
 Manually sending exceptions
 ---------------------------
 
@@ -89,9 +100,9 @@ try
 {
   
 }
-catch (Exception e)
+catch (Exception ex)
 {
-  new RaygunClient().SendAsync(e);
+  RaygunClient.Current.SendAsync(ex);
 }
 ```
 
@@ -99,10 +110,21 @@ catch (Exception e)
 
 The send exception method has an optional argument to send a list of string tags. These tags are useful to categorize exceptions in different ways which you can filter in Raygun.
 
+```csharp
+RaygunClient.Current.SendAsync(ex, new List<string>{"Critical", "Data"});
+```
+
 ### Custom data
 
 Another optional argument of the send exception method is a dictionary of string keys and object values.
-This lets you attch custom data that you know will help investigating the exception further, such as the state of related models.
+This lets you attach custom data that you know will help investigating the exception further, such as the state of related models.
+
+```csharp
+RaygunClient.Current.SendAsync(ex, userCustomData: new Dictionary<string, object>
+{
+  {"ExperimentalFeaturesEnabled", true}
+});
+```
 
 The SendingCrashReport event
 ----------------------------
@@ -231,7 +253,7 @@ mechanisms for sending navigation events to Raygun - the ListenToNavigation atta
 The ListenToNavigation attached property
 ----------------------------------------
 
-The RaygunClient includes an attached property called `ListenToNavigation` which currently supports the Frame element. This will attach event handlers
+The RaygunClient includes an attached property called `ListenToNavigation` which currently supports the `Frame` element. This will attach event handlers
 to the loading/loaded and navigating/navigated events, allowing Raygun4UWP to measure the time it takes to perform a Frame navigation and send an event to Raygun.
 The name of the event will be the name of the page class type that was navigated to.
 
@@ -281,7 +303,7 @@ If there currently isn't an active session, then calling this method does nothin
 Common Features
 ===============
 
-User Tracking
+User tracking
 -------------
 
 Both Crash Reporting and Real User Monitoring have the ability to specify user information.
@@ -293,12 +315,12 @@ Please be aware of any company privacy policies you have when choosing what type
 
 ### The User property
 
-If all you need to identify a user is a single string, then you can set the ```User``` property.
-Note that setting this to null or whitespace will cause the default random GUID descibed above will be used.
+If all you need to identify a user is a single string, then you can set the `User` property.
+Note that setting this to null or whitespace will cause the default random GUID descibed above to be used.
 This string can be whatever you like. Below are some common suggestions.
 
-* Identifying information such as name or email address
-* An id that doesn't reveal any information about the user, but can be looked up in your own systems to find out who the user it.
+* Identifying information such as name or email address.
+* An id that doesn't reveal any information about the user, but can be looked up in your own systems to find out who the user is.
 * Your own random string if you don't want to use the one Raygun stores in roaming app data. This may however result in unreliable user statistics in Raygun.
 
 ### The UserInfo property
