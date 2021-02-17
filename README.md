@@ -24,7 +24,7 @@ Raygun4UWP
     * [SendSessionTimingEventAsync](#sendsessiontimingeventasync)
     * [SendSessionEndEventAsync](#sendsessionendeventasync)
 * [Common Features](#common-features)
-  * [User Tracking](#user-tracking)
+  * [User Tracking](#customers)
     * [The User property](#the-user-property)
     * [The UserInfo property](#the-userinfo-property)
     * [RUM behaviour](#rum-behaviour)
@@ -330,7 +330,7 @@ Below are the various properties that you can use to describe the customer. The 
 
 **Identifier** The unique identifier you want to use to identify this customer. Suggestions for what you could set this to are listed in the User property section above.
 
-**IsAnonymous** A flag indicating whether the customer is logged in (or identifiable) or if they are anonymous. An anonymous user/customer still requires an identifier.
+**IsAnonymous** A flag indicating whether the customer is logged in (or identifiable) or if they are anonymous. An anonymous customer still requires an identifier.
 
 **UUID** A device identifier. Could be used to identify customers across devices, or machines that are breaking for many customers.
 
@@ -339,8 +339,8 @@ Below are the various properties that you can use to describe the customer. The 
 ### RUM behaviour
 
 If you have enabled Real User Monitoring on the RaygunClient, then changing the User or UserInfo properties can cause additional events to be sent to Raygun.
-If the user is not currently null and then overriden by different user information, then a session-end event will be sent to Raygun.
-This is because a session can only have a single user, so changing the user represents a logout/login scenario that ends the current session for a new one to begin.
+If the customer is not currently null and then overriden by different customer information, then a session-end event will be sent to Raygun.
+This is because a session can only have a single customer, so changing the customer represents a logout/login scenario that ends the current session for a new one to begin.
 
 Application version
 -------------------

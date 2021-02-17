@@ -284,7 +284,7 @@ If there currently isn't an active session, then calling this method does nothin
 COMMON FEATURES
 ========================================================================================================================================================
 
-User tracking
+Customers
 -------------
 
 Both Crash Reporting and Real User Monitoring have the ability to specify user information.
@@ -296,32 +296,32 @@ Please be aware of any company privacy policies you have when choosing what type
 
 -- The User property --
 
-If all you need to identify a user is a single string, then you can set the "User" property.
+If all you need to identify a customer is a single string, then you can set the "User" property.
 Note that setting this to null or whitespace will cause the default random GUID descibed above to be used.
 This string can be whatever you like. Below are some common suggestions.
 
 * Identifying information such as name or email address.
-* An id that doesn't reveal any information about the user, but can be looked up in your own systems to find out who the user is.
+* An id that doesn't reveal any information about the customer, but can be looked up in your own systems to find out who the customer is.
 * Your own random string if you don't want to use the one Raygun stores in roaming app data. This may however result in unreliable user statistics in Raygun.
 
 -- The UserInfo property --
 
-If a single string is not enough to describe the information that you want to log about a user, then you can set the "UserInfo" property.
-Below are the various properties that you can use to describe the user. The Identifier is the only required field, which can be provided through the constructor.
+If a single string is not enough to describe the information that you want to log about a customer, then you can set the "UserInfo" property.
+Below are the various properties that you can use to describe the customer. The Identifier is the only required field, which can be provided through the constructor.
 
 "Identifier" The unique identifier you want to use to identify this user. Suggestions for what you could set this to are listed in the User property section above.
 
-"IsAnonymous" A flag indicating whether the user is logged in (or identifiable) or if they are anonymous. An anonymous user still requires an identifier.
+"IsAnonymous" A flag indicating whether the customer is logged in (or identifiable) or if they are anonymous. An anonymous user still requires an identifier.
 
-"UUID" A device identifier. Could be used to identify users across devices, or machines that are breaking for many users.
+"UUID" A device identifier. Could be used to identify customers across devices, or machines that are breaking for many customers.
 
 "Email", "FullName" and "FirstName" are self explanatory.
 
 -- RUM behaviour --
 
 If you have enabled Real User Monitoring on the RaygunClient, then changing the User or UserInfo properties can cause additional events to be sent to Raygun.
-If the user is not currently null and then overriden by different user information, then a session-end event will be sent to Raygun.
-This is because a session can only have a single user, so changing the user represents a logout/login scenario that ends the current session for a new one to begin.
+If the customer is not currently null and then overriden by different customer information, then a session-end event will be sent to Raygun.
+This is because a session can only have a single customer, so changing the user represents a logout/login scenario that ends the current session for a new one to begin.
 
 Application version
 -------------------
