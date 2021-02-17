@@ -24,7 +24,7 @@ Raygun4UWP
     * [SendSessionTimingEventAsync](#sendsessiontimingeventasync)
     * [SendSessionEndEventAsync](#sendsessionendeventasync)
 * [Common Features](#common-features)
-  * [User Tracking](#customers)
+  * [Customers](#customers)
     * [The User property](#the-user-property)
     * [The UserInfo property](#the-userinfo-property)
     * [RUM behaviour](#rum-behaviour)
