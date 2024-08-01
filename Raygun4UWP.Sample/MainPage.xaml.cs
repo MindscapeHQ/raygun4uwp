@@ -25,6 +25,7 @@ namespace Raygun4UWP.Sample
         public MainPage()
         {
             this.InitializeComponent();
+            RaygunClient.Current.SendAsync(new Exception("Test exception"));
         }
     }
 }
