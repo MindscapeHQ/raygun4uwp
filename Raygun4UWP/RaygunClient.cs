@@ -269,7 +269,7 @@ namespace Raygun4UWP
 
     #endregion // ListenToNavigation attached property
 
-    private void Application_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+    private void Application_UnhandledException(object sender, Windows.UI.Xaml.UnhandledExceptionEventArgs e)
     {
       Send(e.Exception);
     }
