@@ -30,7 +30,9 @@ namespace Raygun4UWP.Sample
         {
             this.InitializeComponent();
             this.Suspending += OnSuspending;
-            RaygunClient.Initialize("API_KEY").EnableCrashReporting();
+
+            // Initialize Raygun
+            RaygunClient.Initialize("YOUR_API_KEY").EnableCrashReporting();
         }
 
         /// <summary>

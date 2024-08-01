@@ -9,6 +9,7 @@
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
     <Grid>
+        <Button Content="Send Exception" Margin="0,305,0,0" VerticalAlignment="Top" Height="379" Width="643" HorizontalAlignment="Center" Click="Button_Click"/>
 
     </Grid>
 </Page>
