@@ -227,6 +227,7 @@ namespace Raygun4UWP
 
       var stackTrace = new StackTrace(exception, true);
       var frames = stackTrace.GetFrames();
+      if (frames == null) return null;
 
       foreach (StackFrame frame in frames)
       {
