@@ -66,12 +66,20 @@ namespace Raygun4UWP
 
     private static void UpdateIsInternetAvailable()
     {
-      IEnumerable<ConnectionProfile> connections = NetworkInformation.GetConnectionProfiles();
-      var internetProfile = NetworkInformation.GetInternetConnectionProfile();
+      try
+      {
+        IEnumerable<ConnectionProfile> connections = NetworkInformation.GetConnectionProfiles();
+        var internetProfile = NetworkInformation.GetInternetConnectionProfile();
 
-      _isInternetAvailable = connections != null && connections.Any(c =>
-                               c.GetNetworkConnectivityLevel() == NetworkConnectivityLevel.InternetAccess) ||
-                             (internetProfile != null && internetProfile.GetNetworkConnectivityLevel() == NetworkConnectivityLevel.InternetAccess);
+        _isInternetAvailable = connections != null && connections.Any(c =>
+                                 c.GetNetworkConnectivityLevel() == NetworkConnectivityLevel.InternetAccess) ||
+                               (internetProfile != null && internetProfile.GetNetworkConnectivityLevel() == NetworkConnectivityLevel.InternetAccess);
+      }
+      catch (Exception)
+      {
+        // If we can't determine the internet status, assume it's not available
+        _isInternetAvailable = false;
+      }
     }
   }
 }
