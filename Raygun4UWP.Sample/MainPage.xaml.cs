@@ -29,6 +29,8 @@ namespace Raygun4UWP.Sample
 
         private async void Button_Click(object sender, RoutedEventArgs e)
         {
+            RaygunClient.Current.RecordBreadcrumb("test breadcrumb");
+
             await RaygunClient.Current.SendAsync(new Exception("Test exception"));
         }
     }

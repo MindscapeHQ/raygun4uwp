@@ -82,5 +82,11 @@ namespace Raygun4UWP
       _raygunCrashReport.OccurredOn = occurredOn;
       return this;
     }
+
+    public IRaygunCrashReportBuilder SetBreadcrumbs(IList<RaygunBreadcrumb> raygunBreadcrumbs)
+    {
+      _raygunCrashReport.Details.Breadcrumbs = raygunBreadcrumbs;
+      return this;
+    }
   }
 }
