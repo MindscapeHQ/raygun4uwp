@@ -61,10 +61,7 @@ namespace Raygun4UWP
 
         public void Store(RaygunBreadcrumb breadcrumb)
         {
-            if (_breadcrumbs == null)
-            {
-                return;
-            }
+// Removed redundant null check for _breadcrumbs.
 
             if (_breadcrumbs.Count == MaxSize)
             {
