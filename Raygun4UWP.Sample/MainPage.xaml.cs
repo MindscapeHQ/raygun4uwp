@@ -22,6 +22,8 @@ namespace Raygun4UWP.Sample
     /// </summary>
     public sealed partial class MainPage : Page
     {
+        int count = 0;
+
         public MainPage()
         {
             this.InitializeComponent();
@@ -29,9 +31,24 @@ namespace Raygun4UWP.Sample
 
         private async void Button_Click(object sender, RoutedEventArgs e)
         {
-            RaygunClient.Current.RecordBreadcrumb("test breadcrumb");
-
             await RaygunClient.Current.SendAsync(new Exception("Test exception"));
+        }
+
+        private void ButtonBreadcrumb_Click(object sender, RoutedEventArgs e)
+        {
+            var breadcrumb = new RaygunBreadcrumb
+            {
+                Message = "Test breadcrumb: " + count,
+                Category = "Test category",
+                CustomData = new Dictionary<string, object>
+                {
+                    { "Key", "Value" }
+                }
+            };
+
+            count++;
+
+            RaygunClient.Current.RecordBreadcrumb(breadcrumb);
         }
     }
 }

@@ -9,7 +9,7 @@
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
     <Grid>
-        <Button Content="Send Exception" Margin="0,305,0,0" VerticalAlignment="Top" Height="379" Width="643" HorizontalAlignment="Center" Click="Button_Click"/>
-
+        <Button Content="Send Exception" Margin="32,32,0,0" VerticalAlignment="Top" Height="94" Width="333" Click="Button_Click"/>
+        <Button Content="Record Breadcrumb" Margin="32,156,0,0" VerticalAlignment="Top" Height="94" Width="333" Click="ButtonBreadcrumb_Click"/>
     </Grid>
 </Page>

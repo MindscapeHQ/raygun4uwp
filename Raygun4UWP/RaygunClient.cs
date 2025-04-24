@@ -483,6 +483,7 @@ namespace Raygun4UWP
         .Build();
 
       _breadcrumbs.Clear();
+
       return crashReport;
     }
 
