@@ -85,10 +85,6 @@ namespace Raygun4UWP
         {
             // Copy the list to avoid external modification  
             // and return a new list  
-            if (_breadcrumbs == null)
-            {
-                return new List<RaygunBreadcrumb>();
-            }
             return new List<RaygunBreadcrumb>(_breadcrumbs);
         }
     }
