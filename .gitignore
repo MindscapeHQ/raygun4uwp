@@ -5,6 +5,12 @@
 packages/
 release/
 
+################
+# Sample App
+################
+
+Raygun4UWP.Sample/AppPackages/
+
 #################
 ## Visual Studio
 #################
