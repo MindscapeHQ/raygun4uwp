@@ -123,6 +123,8 @@
     <Compile Include="Common\DefaultUserService.cs" />
     <Compile Include="Common\EnvironmentService.cs" />
     <Compile Include="Common\HttpService.cs" />
+    <Compile Include="CrashReporting\Breadcrumbs\RaygunBreadcrumb.cs" />
+    <Compile Include="CrashReporting\Breadcrumbs\RaygunBreadcrumbs.cs" />
     <Compile Include="CrashReporting\Builders\RaygunEnvironmentInfoBuilder.cs" />
     <Compile Include="CrashReporting\Builders\RaygunErrorInfoBuilder.cs" />
     <Compile Include="CrashReporting\Builders\IRaygunCrashReportBuilder.cs" />

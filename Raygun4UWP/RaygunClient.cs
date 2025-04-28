@@ -21,6 +21,7 @@ namespace Raygun4UWP
     private bool _handlingRecursiveErrorSending;
     private string _applicationVersion;
     private RaygunUserInfo _userInfo;
+    private RaygunBreadcrumbs _breadcrumbs = new RaygunBreadcrumbs();
 
     /// <summary>
     /// Creates a new instance of the <see cref="RaygunClient" /> class.
@@ -269,7 +270,7 @@ namespace Raygun4UWP
 
     #endregion // ListenToNavigation attached property
 
-    private void Application_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+    private void Application_UnhandledException(object sender, Windows.UI.Xaml.UnhandledExceptionEventArgs e)
     {
       Send(e.Exception);
     }
@@ -478,7 +479,10 @@ namespace Raygun4UWP
         .SetTags(tags)
         .SetCustomData(userCustomData)
         .SetUserInfo(UserInfo ?? DefaultUserService.DefaultUser)
+        .SetBreadcrumbs(_breadcrumbs.ToList())
         .Build();
+
+      _breadcrumbs.Clear();
 
       return crashReport;
     }
@@ -531,6 +535,20 @@ namespace Raygun4UWP
       {
         yield return exception;
       }
+    }
+
+    public void RecordBreadcrumb(RaygunBreadcrumb breadcrumb)
+    {
+      _breadcrumbs.Record(breadcrumb);
+    }
+
+    public void RecordBreadcrumb(string message)
+    {
+      _breadcrumbs.Record(new RaygunBreadcrumb()
+        {
+          Message = message
+        }
+      );
     }
   }
 }

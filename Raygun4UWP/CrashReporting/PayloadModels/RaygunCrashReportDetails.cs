@@ -22,5 +22,7 @@ namespace Raygun4UWP
     public IDictionary UserCustomData { get; set; }
 
     public RaygunUserInfo User { get; set; }
+
+    public IList<RaygunBreadcrumb> Breadcrumbs { get; set; }
   }
 }
