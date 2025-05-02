@@ -1,15 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+<package>
   <metadata minClientVersion="2.8.3">
     <id>Raygun4UWP</id>
     <title>Raygun4UWP</title>
-    <version>1.1.1</version>
+    <version>1.2.1</version>
     <releaseNotes>
     </releaseNotes>
     <authors>Raygun</authors>
     <copyright>Copyright © Raygun 2019</copyright>
     <iconUrl>https://app.raygun.com/Content/Images/nuget-icon.png</iconUrl>
-    <licenseUrl>https://raw.github.com/MindscapeHQ/raygun4uwp/master/LICENSE</licenseUrl>
+    <icon>128x128-transparent.png</icon>
+    <license type="file">LICENSE</license>
+    <readme>README.md</readme>
     <projectUrl>https://github.com/MindscapeHQ/raygun4uwp</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Raygun provider for Universal Windows (UWP) applications</description>
@@ -42,5 +44,8 @@
     <file src="Raygun4UWP\bin\ARM\Release\Raygun4UWP.pri" target="runtimes\win10-arm\lib\uap10.0"/>
 
     <file src="readme.txt" />
+    <file src="128x128-transparent.png"/>
+    <file src="LICENSE" />
+    <file src="README.md"/>
   </files>
 </package>
